@@ -16,28 +16,40 @@
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 # *****************************************************************************
 
-#import os
+import os
+import sys
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 
-rootDir = 'C:/odmkDev/odmkCode/odmkPython/'
-audioSrcDir = 'C:/odmkDev/odmkCode/odmkPython/audio/wavsrc/'
-audioOutDir = 'C:/odmkDev/odmkCode/odmkPython/audio/wavout/'
-
-import sys
-
-#sys.path.insert(0, 'C:/odmkDev/odmkCode/odmkPython/util')
-sys.path.insert(0, rootDir+'util')
-import xodPlotUtil as xodplt
-
-sys.path.insert(1, rootDir+'audio\\audioTools')
-from odmkAudioTools import write_wav
-
-
-sys.path.insert(2, rootDir+'DSP')
 import xodClocks as clks
 import xodWavGen as wavGen
+
+# // *---------------------------------------------------------------------* //
+
+# // *--- define project paths: assumes source images in ./imgSrc sub-folder
+currentDir = os.getcwd()
+dataSrcDir = currentDir + "/imgSrc/"
+
+# // *---------------------------------------------------------------------* //
+# // *---------------------------------------------------------------------* //
+
+# assumes python projects are located in xodPython
+
+currentDir = os.getcwd()
+rootDir = os.path.dirname(currentDir)
+audioOutDir = currentDir + "audio/wavout/"
+
+print("currentDir: " + currentDir)
+print("rootDir: " + rootDir)
+
+
+sys.path.insert(0, rootDir+'/xodUtil')
+import xodPlotUtil as xodplt
+
+sys.path.insert(1, rootDir+'/xodma')
+from xodmaAudioTools import write_wav
+
 
 # temp python debugger - use >>>pdb.set_trace() to set break
 #import pdb
@@ -60,7 +72,7 @@ print('// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ //')
 # // *---------------------------------------------------------------------* //
 
 def cyclicZn(n):
-    ''' calculates the Zn roots of unity '''
+    """ calculates the Zn roots of unity """
     cZn = np.zeros((n, 1))*(0+0j)    # column vector of zero complex values
     for k in range(n):
         # z(k) = e^(((k)*2*pi*1j)/n)        # Define cyclic group Zn points
@@ -69,19 +81,16 @@ def cyclicZn(n):
     return cZn
 
 
-
 # /////////////////////////////////////////////////////////////////////////////
 # #############################################################################
 # begin Test:
 # #############################################################################
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-
 print('\n')
 print('// *--------------------------------------------------------------* //')
 print('// *---::Set Parameters for test output::---*')
 print('// *--------------------------------------------------------------* //')
-
 
 
 # length of x in seconds:
@@ -111,7 +120,6 @@ testFreq1 = 777.0
 testPhase1 = 0
 
 
-
 # select generated waveforms
 genMonoSin = 0
 genMonoTri = 0
@@ -121,11 +129,11 @@ genOrthoSinArray = 0
 genCompositeSinArray = 0
 
 genWavetableOsc = 1
-if genWavetableOsc==1:
-    #shape: 
-    #1=sin,     2=cos,     3=tri,     4=saw-up,    5=saw-dn,
-    #6=exp-up,  7=exp-dn,  8=log-up,  9=log-dn,    10=cheby,
-    #11=pulse1, 12=pulse2, 13=pulse3, 14=pulse4,   15=user
+if genWavetableOsc == 1:
+    # shape:
+    # 1=sin,     2=cos,     3=tri,     4=saw-up,    5=saw-dn,
+    # 6=exp-up,  7=exp-dn,  8=log-up,  9=log-dn,    10=cheby,
+    # 11=pulse1, 12=pulse2, 13=pulse3, 14=pulse4,   15=user
     shape = 'pulse3'
 
 genPWMOsc = 0
@@ -153,7 +161,6 @@ wavGenOutDir = audioOutDir+'wavGenOutDir/'
 tbWavGen = wavGen.xodWavGen(sr, xLength, wavGenOutDir)
 
 
-
 # // *---------------------------------------------------------------------* //
 
 tbclkDownBeats = tbClocks.clkDownBeats()
@@ -166,10 +173,9 @@ tbclkDownBeats = tbClocks.clkDownBeats()
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 
-
 # // *---------------------------------------------------------------------* //
 # generate simple mono sin waves
-if genMonoSin==1:
+if genMonoSin == 1:
 
     print('\n::Mono Sine waves::')
     print('generated mono sin signals @ 2.5K and 5K Hz')
@@ -187,26 +193,25 @@ if genMonoSin==1:
     # use specific signal length (** must include sample rate before length)
     monoSinOutxl = np.array([y for y in tbWavGen.monosin(monoSinFreq, sr, xl)])
     
-    if createWavFile==1:
+    if createWavFile == 1:
         
-        wavGenMonoSinOut = wavGenOutDir+'MonoSinOut.wav'
+        wavGenMonoSinOut = wavGenOutDir + 'MonoSinOut.wav'
         write_wav(wavGenMonoSinOut, monoSinOut, sr)
         
-        wavGenMonoSinOutxl = wavGenOutDir+'MonoSinOutxl.wav'
+        wavGenMonoSinOutxl = wavGenOutDir + 'MonoSinOutxl.wav'
         write_wav(wavGenMonoSinOutxl, monoSinOutxl, sr)    
-    
-    
+
     # Test mono sin Array function
     
     monoSinArrayOut = tbWavGen.monosinArray(monoSinFreq)
     monoSinArrayOutxl = tbWavGen.monosinArray(monoSinFreq, sr, xl)
     
-    if createWavFile==1:
+    if createWavFile == 1:
         
-        wavGenMonoSinOut = wavGenOutDir+'MonoSinArrayOut.wav'
+        wavGenMonoSinOut = wavGenOutDir + 'MonoSinArrayOut.wav'
         write_wav(wavGenMonoSinOut, monoSinArrayOut, sr)
         
-        wavGenMonoSinOutxl = wavGenOutDir+'MonoSinArrayOutxl.wav'
+        wavGenMonoSinOutxl = wavGenOutDir + 'MonoSinArrayOutxl.wav'
         write_wav(wavGenMonoSinOutxl, monoSinArrayOutxl, sr)
     
 else:
@@ -215,7 +220,7 @@ else:
     
 # // *---------------------------------------------------------------------* //    
 # generate simple mono tri wave
-if genMonoTri==1: 
+if genMonoTri == 1:
     
     print('\n::Mono Tri waves::')
     
@@ -225,8 +230,7 @@ if genMonoTri==1:
     monoTriFreq = 700.0    
     
     monoTriOut = tbWavGen.monotri(monoTriFreq)
-    
-    
+
     # Test mono sin generator function
     
     # use global signal length
@@ -235,23 +239,22 @@ if genMonoTri==1:
     # use specific signal length
     monoTriOutxl = np.array([y for y in tbWavGen.monotri(monoTriFreq, sr, xl)])
     
-    #pdb.set_trace()
+    # pdb.set_trace()
     
-    if createWavFile==1:
+    if createWavFile == 1:
         
         wavGenMonoTriOut = wavGenOutDir+'MonoTriOut.wav'
         write_wav(wavGenMonoTriOut, monoTriOut, sr)
         
         wavGenMonoTriOutxl = wavGenOutDir+'MonoTriOutxl.wav'
         write_wav(wavGenMonoTriOutxl, monoTriOutxl, sr)    
-    
-    
+
     # Test mono sin Array function
     
     monoTriArrayOut = tbWavGen.monotriArray(monoTriFreq, sr, xl)
     monoTriArrayOutxl = tbWavGen.monotriArray(monoTriFreq, sr, xl)
     
-    if createWavFile==1:
+    if createWavFile == 1:
         
         wavGenMonoTriOut = wavGenOutDir+'MonoTriArrayOut.wav'
         write_wav(wavGenMonoTriOut, monoTriArrayOut, sr)
@@ -279,12 +282,11 @@ if genLFO==1:
     
     lfoFreqArray1 = [0.125, 0.5]
 
-
     # LFO (sin) generator function
     
     # use specific signal length
-    LFO_L = np.array([ y for y in tbLFOGen.monosin(lfoFreqArray1[0], srLfo, xlLFO) ])
-    LFO_R = np.array([ y for y in tbLFOGen.monosin(lfoFreqArray1[1], srLfo, xlLFO) ])
+    LFO_L = np.array([y for y in tbLFOGen.monosin(lfoFreqArray1[0], srLfo, xlLFO)])
+    LFO_R = np.array([y for y in tbLFOGen.monosin(lfoFreqArray1[1], srLfo, xlLFO)])
     testLFOdual = [LFO_L, LFO_R]    
     
     
@@ -294,9 +296,9 @@ else:
 
 # // *---------------------------------------------------------------------* //
 # generate array of sin waves
-if genSinArray==1:
+if genSinArray == 1:
     
-    plotSinArray    = 1
+    plotSinArray = 1
     
     odmkTestFreqArray2_1 = [444.0, 1776.0]
     odmkTestFreqArray2_2 = [2500.0, 5000.0]    
@@ -308,9 +310,7 @@ if genSinArray==1:
     # orthogonal sets
     odmkTestFreqArray3_1 = [3200.0, 6400.0, 9600.0]
     odmkTestFreqArray7_1 = [3200.0, 6400.0, 9600.0, 12800.0, 16000.0, 19200.0,  22400.0]
-    
-    
-    
+
     print('\n::Multi Sine source::')
     # testFreqs = [666.0, 777.7, 2300.0, 6000.0, 15600.0]
     testFreqs = odmkTestFreqArray5_2
@@ -333,7 +333,7 @@ else:
     
 # // *---------------------------------------------------------------------* //    
 # generate array of sin waves
-if genOrthoSinArray==1:
+if genOrthoSinArray == 1:
     
     plotOrthoSinArray = 1    
     
@@ -356,8 +356,7 @@ if genOrthoSinArray==1:
     #       [-0.90096887-0.43388374j],
     #       [-0.22252093-0.97492791j],
     #       [ 0.62348980-0.78183148j]])
-    
-    
+
     # generate a set of orthogonal frequencies
 
     print('\n::Orthogonal Multi Sine source::')
@@ -377,7 +376,7 @@ if genOrthoSinArray==1:
     print('Orthogonal Frequency Array (Hz):')
     print(orthoFreqArray)
     
-    #pdb.set_trace()
+    # pdb.set_trace()
 
     orthoSinArray = np.array([])
     for freq in orthoFreqArray:
@@ -389,17 +388,13 @@ if genOrthoSinArray==1:
 else:
     plotOrthoSinArray = 0
 
-
-
 # // *---------------------------------------------------------------------* //
 # generate a composite signal of an array of sin waves "sum of sines"
-if genCompositeSinArray==1:
+if genCompositeSinArray == 1:
     
     plotCompositeSinArray = 1
-    
 
     print('\n::Composite Multi Sine source::')
-
 
     # user:
 
@@ -413,7 +408,6 @@ if genCompositeSinArray==1:
     # orthogonal sets
     odmkTestFreqArray3_1 = [3200.0, 6400.0, 9600.0]
     odmkTestFreqArray7_1 = [3200.0, 6400.0, 9600.0, 12800.0, 16000.0, 19200.0,  22400.0]
-    
 
     freqArray = odmkTestFreqArray5_1
 
@@ -422,7 +416,7 @@ if genCompositeSinArray==1:
     print('Generated composite sine signal: sinOrth5Comp1')
     print('generated a Composite array of sin signals "orthoSinComp1"')
     
-    if createWavFile==1:
+    if createWavFile == 1:
         wavGenMultiSinOut = wavGenOutDir+'multiSinOut.wav'
         write_wav(wavGenMultiSinOut, multiSinOut, sr)
 
@@ -440,24 +434,22 @@ else:
 
 # // *---------------------------------------------------------------------* //
 # generate output from wavetable oscillator
-if genWavetableOsc==1:
+if genWavetableOsc == 1:
     
     plotWavetableOsc = 1
 
-
     print('\n::Wavetable oscillator::')
 
-    #defined above
-    #shape: 
-    #1=sin,     2=cos,     3=tri,     4=saw-up,    5=saw-dn,
-    #6=exp-up,  7=exp-dn,  8=log-up,  9=log-dn,    10=cheby,
-    #11=pulse1, 12=pulse2, 13=pulse3, 14=pulse4,   15=user
+    # defined above
+    # shape:
+    # 1=sin,     2=cos,     3=tri,     4=saw-up,    5=saw-dn,
+    # 6=exp-up,  7=exp-dn,  8=log-up,  9=log-dn,    10=cheby,
+    # 11=pulse1, 12=pulse2, 13=pulse3, 14=pulse4,   15=user
 
-    #shape = 'sin'
+    # shape = 'sin'
     
-    
-    #testFreq1 = 777.0
-    #testPhase1 = 0
+    # testFreq1 = 777.0
+    # testPhase1 = 0
 
     freqCtrl = testFreq1
     phaseCtrl = testPhase1
@@ -832,10 +824,8 @@ if plotOrthoSinArray == 1:
     xodplt.xodMultiPlot1D(fnum, yOrthoScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
    
 # // *---------------------------------------------------------------------* //
-   
-   
 
-if plotCompositeSinArray==1:
+if plotCompositeSinArray == 1:
     
     
     # // *---------------------------------------------------------------------* //   
