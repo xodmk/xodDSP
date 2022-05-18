@@ -10,6 +10,8 @@
 # required lib:
 # odmkClocks ; xodWavGen
 #
+# Requirements
+# sudo apt-get install python3-tk
 #
 # *****************************************************************************
 # /////////////////////////////////////////////////////////////////////////////
@@ -20,16 +22,13 @@ import os
 import sys
 import numpy as np
 import scipy as sp
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import xodClocks as clks
 import xodWavGen as wavGen
 
-# // *---------------------------------------------------------------------* //
-
-# // *--- define project paths: assumes source images in ./imgSrc sub-folder
-currentDir = os.getcwd()
-dataSrcDir = currentDir + "/imgSrc/"
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
@@ -52,7 +51,7 @@ from xodmaAudioTools import write_wav
 
 
 # temp python debugger - use >>>pdb.set_trace() to set break
-#import pdb
+import pdb
 
 # run this command to de-embed plots
 # %matplotlib qt
@@ -76,7 +75,7 @@ def cyclicZn(n):
     cZn = np.zeros((n, 1))*(0+0j)    # column vector of zero complex values
     for k in range(n):
         # z(k) = e^(((k)*2*pi*1j)/n)        # Define cyclic group Zn points
-        cZn[k] = np.cos(((k)*2*np.pi)/n) + np.sin(((k)*2*np.pi)/n)*1j   # Euler's identity
+        cZn[k] = np.cos((k * 2 * np.pi) / n) + np.sin((k * 2 * np.pi) / n) * 1j   # Euler's identity
 
     return cZn
 
@@ -184,8 +183,7 @@ if genMonoSin == 1:
 
     xl = 1.56   # set signal length
     monoSinFreq = 560.0
-    
-    
+
     # Test mono sin generator function
     
     # use global signal length
@@ -227,9 +225,7 @@ if genMonoTri == 1:
     plotMonoTri = 1    
 
     xl = 0.23
-    monoTriFreq = 700.0    
-    
-    monoTriOut = tbWavGen.monotri(monoTriFreq)
+    monoTriFreq = 700.0
 
     # Test mono sin generator function
     
@@ -269,7 +265,7 @@ else:
 
 # // *---------------------------------------------------------------------* //
 # generate LFO signals
-if genLFO==1:
+if genLFO == 1:
     
     # Create new object with lower sample...
     
@@ -348,8 +344,8 @@ if genOrthoSinArray == 1:
 #        nOrthogonalArray = np.append(nOrthogonalArray, (fs*nCznPh)/(2*np.pi))
     
     # Example orthogonal array:
-    #>>> nCzn =7
-    #array([[ 1.00000000+0.j        ],
+    # >>> nCzn =7
+    # array([[ 1.00000000+0.j        ],
     #       [ 0.62348980+0.78183148j],
     #       [-0.22252093+0.97492791j],
     #       [-0.90096887+0.43388374j],
@@ -426,11 +422,9 @@ else:
 
 # // *---------------------------------------------------------------------* //
 
-
 # #############################################################################
 # Wavetable Synthesis
 # #############################################################################
-
 
 # // *---------------------------------------------------------------------* //
 # generate output from wavetable oscillator
@@ -446,7 +440,7 @@ if genWavetableOsc == 1:
     # 6=exp-up,  7=exp-dn,  8=log-up,  9=log-dn,    10=cheby,
     # 11=pulse1, 12=pulse2, 13=pulse3, 14=pulse4,   15=user
 
-    # shape = 'sin'
+    shape = 'sin'
     
     # testFreq1 = 777.0
     # testPhase1 = 0
@@ -467,13 +461,11 @@ else:
 # begin : Pulse Width Modulations
 # #############################################################################
 
-
 # // *---------------------------------------------------------------------* //
 # generate pulse width modulated square wav
-if genPWMOsc==1:
+if genPWMOsc == 1:
     
     plotPWMOsc = 1
-
 
     print('\n::Pulse Width Modulated square wav::')
 
@@ -482,16 +474,13 @@ if genPWMOsc==1:
             >>phaseInc = output base freq - Fo / Fs
             >>pulseWidth = % of cycle [0 - 100] '''
 
-
     pwmOutFreq = 1000
 
     pwmCtrlFreq = 100
 
-
     phaseInc = pwmOutFreq/sr
 
-
-    pulseWidthCtrl = 0.5*tbWavGen.monosin(pwmCtrlFreq) + 0.5
+    pulseWidthCtrl = 0.5 * tbWavGen.monosin(pwmCtrlFreq) + 0.5
 
     pwmOut = np.zeros([numSamples])
 
@@ -501,15 +490,11 @@ if genPWMOsc==1:
 else:
     plotPWMOsc = 0
 
-
-
-
 # /////////////////////////////////////////////////////////////////////////////
 # #############################################################################
 # begin : Plotting
 # #############################################################################
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
 
 print('\n')
 print('// *--------------------------------------------------------------* //')
@@ -531,24 +516,22 @@ if plotMonoSin == 1:
     y_FFT = sp.fft(y)
     # scale and format FFT out for plotting
     y_FFTscale = 2.0/N * np.abs(y_FFT[0:int(N/2)])
-    #y_Mag = np.abs(y_FFT)
-    #y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
+    # y_Mag = np.abs(y_FFT)
+    # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
     
     yArr = monoSinArrayOut[0:N]
     yArr_FFT = sp.fft(yArr)
     # scale and format FFT out for plotting
     yArr_FFTscale = 2.0/N * np.abs(yArr_FFT[0:int(N/2)])
 
-    
     y_combined = np.concatenate((y, yArr))
     y_combined = y_combined.reshape((2, N))
     
     yfft_combined = np.concatenate((y_FFTscale, yArr_FFTscale))
     yfft_combined = yfft_combined.reshape((2, int(N/2)))
-        
 
     # define a sub-range for wave plot visibility
-    #tLen = 500
+    # tLen = 500
     
     # Plot y1 time domain:
     fnum = 1
@@ -569,9 +552,7 @@ if plotMonoSin == 1:
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xfnyq = np.linspace(0.0, 1.0/(2.0*T), int(N/2))
     xodplt.xodPlot1D(fnum, y_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
- 
-    
-    
+
     # Plot y1 time domain:
     fnum = 3
     pltTitle = 'plt3: Mono Sin (generator vs. array) '+str(monoSinFreq)+' Hz, (first '+str(N)+' samples)'
@@ -587,8 +568,7 @@ if plotMonoSin == 1:
     pltTitle = 'plt4: FFT Mag Mono Sin '+str(monoSinFreq)+' Hz'
     pltXlabel = 'Frequency: 0 - '+str(sr / 2)+' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
-    
-    
+
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xfnyq = np.linspace(0.0, 1.0/(2.0*T), int(N/2))
     xodplt.xodMultiPlot1D(fnum, yfft_combined, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='gnuplot')
@@ -598,37 +578,32 @@ if plotMonoSin == 1:
     
 if plotMonoTri == 1:
 
-
     # // *---------------------------------------------------------------------* //   
     # // *---Mono Triangle wave plots---*
 
-
     # FFT length
     N = 4096
-    
-    
+
     yTri = monoTriOut[0:N]
     yTri_FFT = sp.fft(yTri)
     # scale and format FFT out for plotting
     yTri_FFTscale = 2.0/N * np.abs(yTri_FFT[0:int(N/2)])
-    #y_Mag = np.abs(y_FFT)
-    #y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
+    # y_Mag = np.abs(y_FFT)
+    # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
     
     yTriArr = monoTriArrayOut[0:N]
     yTriArr_FFT = sp.fft(yTriArr)
     # scale and format FFT out for plotting
     yTriArr_FFTscale = 2.0/N * np.abs(yTriArr_FFT[0:int(N/2)])
 
-    
     yTri_combined = np.concatenate((yTri, yTriArr))
     yTri_combined = yTri_combined.reshape((2, N))
     
     yTrifft_combined = np.concatenate((yTri_FFTscale, yTriArr_FFTscale))
     yTrifft_combined = yTrifft_combined.reshape((2, int(N/2)))
-        
 
     # define a sub-range for wave plot visibility
-    #tLen = 500
+    # tLen = 500
     
     # Plot y1 time domain:
     fnum = 5
@@ -649,9 +624,7 @@ if plotMonoTri == 1:
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xfnyq = np.linspace(0.0, 1.0/(2.0*T), int(N/2))
     xodplt.xodPlot1D(fnum, yTri_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
- 
-    
-    
+
     # Plot y1 time domain:
     fnum = 7
     pltTitle = 'plt3: Mono Tri (generator vs. array) '+str(monoTriFreq)+' Hz, (first '+str(N)+' samples)'
@@ -667,8 +640,7 @@ if plotMonoTri == 1:
     pltTitle = 'plt4: FFT Mag Mono Tri '+str(monoTriFreq)+' Hz'
     pltXlabel = 'Frequency: 0 - '+str(sr / 2)+' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
-    
-    
+
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xfnyq = np.linspace(0.0, 1.0/(2.0*T), int(N/2))
     xodplt.xodMultiPlot1D(fnum, yTrifft_combined, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='gnuplot')    
@@ -681,32 +653,28 @@ if plotLFO == 1:
     # // *---------------------------------------------------------------------* //   
     # // *---Mono Triangle wave plots---*
 
-
     # Test FFT length
     N = 4096
     
     # check if signal length is less than Test FFT length
-    if (N > len(LFO_L)):
+    if N > len(LFO_L):
         print("WARNING: LFO_L length is less than test FFT length -> zero padding LFO_L")
         testLFO_L = np.append(LFO_L, np.zeros(N - len(LFO_L)))
     else:
         testLFO_L = LFO_L[0:N]
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, N, N)
-    
 
     fnum = 21
     pltTitle = 'SigGen output: LFO_L: N Hz sine LFO waveform (first '+str(N)+' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude (scaled)'
-    
-    
-    #pdb.set_trace()
+
+    # pdb.set_trace()
     
     xodplt.xodPlot1D(fnum, testLFO_L, xaxis, pltTitle, pltXlabel, pltYlabel)    
 
     # // *-----------------------------------------------------------------* //
-
 
     LFO_L_FFT = sp.fft(testLFO_L)
     # scale and format FFT out for plotting
@@ -718,10 +686,9 @@ if plotLFO == 1:
     pltYlabel = 'Magnitude (scaled by 2/N)'
     
     # define a linear space from 0 to 1/2 Fs for x-axis:
-    xfnyq = np.linspace(0.0, 1.0/(2.0*TLfo), N/2)
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * TLfo), N/2)
     
     xodplt.xodPlot1D(fnum, LFO_L_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)    
-
 
 
 # // *---------------------------------------------------------------------* //    
@@ -748,8 +715,6 @@ if plotSinArray == 1:
     yArray = yArray.reshape((numFreqs, N))
     yScaleArray = yScaleArray.reshape((numFreqs, int(N/2)))
 
-
-
     fnum = 30
     pltTitle = 'Input Signals: sinArray (first '+str(tLen)+' samples)'
     pltXlabel = 'sinArray time-domain wav'
@@ -758,11 +723,10 @@ if plotSinArray == 1:
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
     
-    #pdb.set_trace()
+    # pdb.set_trace()
     
     xodplt.xodMultiPlot1D(fnum, sinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
-    
-    
+
     fnum = 31
     pltTitle = 'FFT Mag: yScaleArray multi-osc '
     pltXlabel = 'Frequency: 0 - '+str(sr / 2)+' Hz'
@@ -774,10 +738,7 @@ if plotSinArray == 1:
     xodplt.xodMultiPlot1D(fnum, yScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
     
 
-
 # // *---------------------------------------------------------------------* //
-    
-    
 
 if plotOrthoSinArray == 1:
     
@@ -801,7 +762,6 @@ if plotOrthoSinArray == 1:
     yOrthoArray = yOrthoArray.reshape((numFreqs, N))
     yOrthoScaleArray = yOrthoScaleArray.reshape(numFreqs, (int(N/2)))
 
-    
     fnum = 32
     pltTitle = 'Input Signals: orthoSinArray (first '+str(tLen)+' samples)'
     pltXlabel = 'orthoSinArray time-domain wav'
@@ -811,8 +771,7 @@ if plotOrthoSinArray == 1:
     xaxis = np.linspace(0, tLen, tLen)
     
     xodplt.xodMultiPlot1D(fnum, orthoSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
-    
-    
+
     fnum = 33
     pltTitle = 'FFT Mag: yOrthoScaleArray multi-osc '
     pltXlabel = 'Frequency: 0 - '+str(sr / 2)+' Hz'
@@ -826,12 +785,10 @@ if plotOrthoSinArray == 1:
 # // *---------------------------------------------------------------------* //
 
 if plotCompositeSinArray == 1:
-    
-    
-    # // *---------------------------------------------------------------------* //   
+
+    # // *---------------------------------------------------------------------* //
     # // *---Composit Sines wave plots---*
-    
-    
+
     # Test FFT length
     N = 4096
 
@@ -841,7 +798,6 @@ if plotCompositeSinArray == 1:
     sig = multiSinOut[0:tLen]
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
-    
 
     fnum = 40
     pltTitle = 'SigGen output: sinOrth5Comp1 Composite waveform (first '+str(tLen)+' samples)'
@@ -851,7 +807,6 @@ if plotCompositeSinArray == 1:
     xodplt.xodPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)    
 
     # // *-----------------------------------------------------------------* //
-
 
     ySinComp1 = multiSinOut[0:N]
 
@@ -885,18 +840,17 @@ if plotWavetableOsc == 1:
 
     y = xodOsc[0:N]
 
+    # pdb.set_trace()
 
     # forward FFT
-    y_FFT = sp.fft(y)
+    y_FFT = np.fft.fft(y)
     
-    #y_Mag = np.abs(y_FFT)
-    #y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
+    # y_Mag = np.abs(y_FFT)
+    # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
     
     # scale and format FFT out for plotting
     y_FFTscale = 2.0/N * np.abs(y_FFT[0:int(N/2)])
-        
-    
-    
+
     # define a sub-range for wave plot visibility
     tLen = 500
     
@@ -905,38 +859,29 @@ if plotWavetableOsc == 1:
     pltTitle = 'WaveTable OSC '+str(freqCtrl)+' Hz, (first '+str(tLen)+' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude'
-    
-    
+
     sig = y[0:tLen]
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
-    
-    
+
     xodplt.xodPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)
-    
-    
-    #sig2 = odmkOsc2[0:tLen]
-    #sigN = np.concatenate((sig, sig2))
-    #sigN = sigN.reshape((2, tLen))
+
+    # sig2 = odmkOsc2[0:tLen]
+    # sigN = np.concatenate((sig, sig2))
+    # sigN = sigN.reshape((2, tLen))
     #
-    #odmkplt.odmkMultiPlot1D(fnum, sigN, xaxis, pltTitle, pltXlabel, pltYlabel)
-    
-    
+    # odmkplt.odmkMultiPlot1D(fnum, sigN, xaxis, pltTitle, pltXlabel, pltYlabel)
+
     # plot y freq domain:
     fnum = 51
     pltTitle = 'FFT Mag WaveTable OSC '+str(freqCtrl)+' Hz'
     pltXlabel = 'Frequency: 0 - '+str(sr / 2)+' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
     
-    
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xfnyq = np.linspace(0.0, 1.0/(2.0*T), int(N/2))
     
     xodplt.xodPlot1D(fnum, y_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
- 
-
-
-    # // *-----------------------------------------------------------------* //
 
     # // *-----------------------------------------------------------------* //
 
@@ -949,14 +894,11 @@ if plotWavetableOsc == 1:
 
 odmkPwmPlots = 0
 if odmkPwmPlots == 1:
-    
-    
-    
+
     # // *---------------------------------------------------------------------* //
     # // *---Mono FFT plots---*
     # // *---------------------------------------------------------------------* //
-    
-    
+
     # define a sub-range for wave plot visibility
     tLen = 48000
     
@@ -964,23 +906,18 @@ if odmkPwmPlots == 1:
     pltTitle = 'Input Signal pwmOut (first '+str(tLen)+' samples)'
     pltXlabel = 'pwm1_FFTscale: '+str(pwmOutFreq)+' Hz'
     pltYlabel = 'Magnitude'
-    
-    
+
     sig = pwmOut[0:tLen]
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
-    
-    
+
     xodplt.xodPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)
-    
-    
-    
+
     pwm1 = pwmOut[0:N]
     pwm1_FFT = sp.fft(pwm1)
     # scale and format FFT out for plotting
     pwm1_FFTscale = 2.0/N * np.abs(pwm1_FFT[0:int(N/2)])
-    
-    
+
     fnum = 60
     pltTitle = 'FFT Mag: pwm1_FFTscale '+str(pwmOutFreq)+' Hz'
     pltXlabel = 'Frequency: 0 - '+str(sr / 2)+' Hz'
@@ -992,7 +929,6 @@ if odmkPwmPlots == 1:
     xfnyq = np.linspace(0.0, 1.0/(2.0*T), N/2)
     
     xodplt.xodPlot1D(fnum, pwm1_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)    
-
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
