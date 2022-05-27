@@ -21,7 +21,6 @@
 import os
 import sys
 import numpy as np
-import scipy as sp
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -124,10 +123,10 @@ genMonoSin = 0
 genMonoTri = 0
 genLFO = 0
 genSinArray = 0
-genOrthoSinArray = 0
+genOrthoSinArray = 1
 genCompositeSinArray = 0
 
-genWavetableOsc = 1
+genWavetableOsc = 0
 if genWavetableOsc == 1:
     # shape:
     # 1=sin,     2=cos,     3=tri,     4=saw-up,    5=saw-dn,
@@ -513,14 +512,14 @@ if plotMonoSin == 1:
     N = 4096
 
     y = monoSinOut[0:N]
-    y_FFT = sp.fft(y)
+    y_FFT = np.fft.fft(y)
     # scale and format FFT out for plotting
     y_FFTscale = 2.0/N * np.abs(y_FFT[0:int(N/2)])
     # y_Mag = np.abs(y_FFT)
     # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
     
     yArr = monoSinArrayOut[0:N]
-    yArr_FFT = sp.fft(yArr)
+    yArr_FFT = np.fft.fft(yArr)
     # scale and format FFT out for plotting
     yArr_FFTscale = 2.0/N * np.abs(yArr_FFT[0:int(N/2)])
 
@@ -585,14 +584,14 @@ if plotMonoTri == 1:
     N = 4096
 
     yTri = monoTriOut[0:N]
-    yTri_FFT = sp.fft(yTri)
+    yTri_FFT = np.fft.fft(yTri)
     # scale and format FFT out for plotting
     yTri_FFTscale = 2.0/N * np.abs(yTri_FFT[0:int(N/2)])
     # y_Mag = np.abs(y_FFT)
     # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
     
     yTriArr = monoTriArrayOut[0:N]
-    yTriArr_FFT = sp.fft(yTriArr)
+    yTriArr_FFT = np.fft.fft(yTriArr)
     # scale and format FFT out for plotting
     yTriArr_FFTscale = 2.0/N * np.abs(yTriArr_FFT[0:int(N/2)])
 
@@ -676,7 +675,7 @@ if plotLFO == 1:
 
     # // *-----------------------------------------------------------------* //
 
-    LFO_L_FFT = sp.fft(testLFO_L)
+    LFO_L_FFT = np.fft.fft(testLFO_L)
     # scale and format FFT out for plotting
     LFO_L_FFTscale = 2.0/N * np.abs(LFO_L_FFT[0:int(N/2)])
 
@@ -709,7 +708,7 @@ if plotSinArray == 1:
     yScaleArray = np.array([])
     # for h in range(len(sinArray[0, :])):
     for h in range(numFreqs):    
-        yFFT = sp.fft(sinArray[h, 0:N])
+        yFFT = np.fft.fft(sinArray[h, 0:N])
         yArray = np.concatenate((yArray, yFFT))
         yScaleArray = np.concatenate((yScaleArray, 2.0/N * np.abs(yFFT[0:int(N/2)])))
     yArray = yArray.reshape((numFreqs, N))
@@ -756,7 +755,7 @@ if plotOrthoSinArray == 1:
     yOrthoScaleArray = np.array([])
     # for h in range(len(sinArray[0, :])):
     for h in range(numFreqs):
-        yOrthoFFT = sp.fft(orthoSinArray[h, 0:N])
+        yOrthoFFT = np.fft.fft(orthoSinArray[h, 0:N])
         yOrthoArray = np.concatenate((yOrthoArray, yOrthoFFT))
         yOrthoScaleArray = np.concatenate((yOrthoScaleArray, 2.0/N * np.abs(yOrthoFFT[0:int(N/2)])))
     yOrthoArray = yOrthoArray.reshape((numFreqs, N))
@@ -778,7 +777,7 @@ if plotOrthoSinArray == 1:
     pltYlabel = 'Magnitude (scaled by 2/N)'
     
     # define a linear space from 0 to 1/2 Fs for x-axis:
-    xfnyq = np.linspace(0.0, 1.0/(2.0*T), N/2)
+    xfnyq = np.linspace(0.0, 1.0/(2.0*T), int(N/2))
     
     xodplt.xodMultiPlot1D(fnum, yOrthoScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
    
@@ -810,7 +809,7 @@ if plotCompositeSinArray == 1:
 
     ySinComp1 = multiSinOut[0:N]
 
-    sinComp1_FFT = sp.fft(ySinComp1)
+    sinComp1_FFT = np.fft.fft(ySinComp1)
     sinComp1_FFTscale = 2.0/N * np.abs(sinComp1_FFT[0:int(N/2)])
 
     fnum = 41
@@ -914,7 +913,7 @@ if odmkPwmPlots == 1:
     xodplt.xodPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)
 
     pwm1 = pwmOut[0:N]
-    pwm1_FFT = sp.fft(pwm1)
+    pwm1_FFT = np.fft.fft(pwm1)
     # scale and format FFT out for plotting
     pwm1_FFTscale = 2.0/N * np.abs(pwm1_FFT[0:int(N/2)])
 

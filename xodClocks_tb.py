@@ -15,17 +15,28 @@
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 # *****************************************************************************
 
-#import os
+import os
 import sys
 import numpy as np
-#import scipy as sp
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-rootDir = 'C:/odmkDev/odmkCode/odmkPython/'
-audioScrDir = 'C:/odmkDev/odmkCode/odmkPython/audio/wavsrc/'
-audioOutDir = 'C:/odmkDev/odmkCode/odmkPython/audio/wavout/'
 
-sys.path.insert(0, rootDir+'util')
+# // *---------------------------------------------------------------------* //
+# // *---------------------------------------------------------------------* //
+
+# assumes python projects are located in xodPython
+
+currentDir = os.getcwd()
+rootDir = os.path.dirname(currentDir)
+audioOutDir = currentDir + "audio/wavout/"
+
+print("currentDir: " + currentDir)
+print("rootDir: " + rootDir)
+
+
+sys.path.insert(0, rootDir+'/xodUtil')
 import xodPlotUtil as xodplt
 
 sys.path.insert(2, rootDir+'DSP')
