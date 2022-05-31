@@ -69,14 +69,13 @@ print('// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ //')
 # // *---------------------------------------------------------------------* //
 
 def cyclicZn(n):
-    ''' calculates the Zn roots of unity '''
-    cZn = np.zeros((n, 1))*(0+0j)    # column vector of zero complex values
+    """ calculates the Zn roots of unity """
+    cZn = np.zeros((n, 1)) * (0+0j)    # column vector of zero complex values
     for k in range(n):
         # z(k) = e^(((k)*2*pi*1j)/n)        # Define cyclic group Zn points
-        cZn[k] = np.cos(((k)*2*np.pi)/n) + np.sin(((k)*2*np.pi)/n)*1j   # Euler's identity
+        cZn[k] = np.cos((k * 2 * np.pi) / n) + np.sin((k * 2 * np.pi) / n) * 1j   # Euler's identity
 
     return cZn
-
 
 
 # // *---------------------------------------------------------------------* //
