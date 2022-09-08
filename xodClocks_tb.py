@@ -114,7 +114,7 @@ print('// *--------------------------------------------------------------* //')
 
 # // *---------------------------------------------------------------------* //
 
-tbClocks = clks.xodClocks(xLength, fs, bpm, framesPerSec)
+tbClocks = clks.XodClocks(xLength, fs, bpm, framesPerSec)
 
 
 tbxLength = tbClocks.xLength

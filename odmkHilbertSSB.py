@@ -16,38 +16,39 @@
 # *****************************************************************************
 
 import os
-import wave
+import sys
 import numpy as np
 import scipy as sp
 import scipy.signal
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d.axes3d as p3
+
+import xodClocks as clks
+import xodWavGen as wavGen
 
 
-rootDir = 'C:/odmkDev/odmkCode/odmkPython/'
+# // *---------------------------------------------------------------------* //
+# // *---------------------------------------------------------------------* //
 
-import sys
+# assumes python projects are located in xodPython
 
-#sys.path.insert(0, 'C:/odmkDev/odmkCode/odmkPython/util')
-sys.path.insert(0, rootDir+'util')
-from odmkClear import *
-#from odmkPlotUtil import *
-import odmkPlotUtil as odmkplt
+currentDir = os.getcwd()
+rootDir = os.path.dirname(currentDir)
+audioOutDir = currentDir + "audio/wavout/"
 
-#sys.path.insert(1, 'C:/odmkDev/odmkCode/odmkPython/DSP')
-sys.path.insert(1, rootDir+'DSP')
-import odmkClocks as clks
-import odmkSigGen1 as sigGen
+print("currentDir: " + currentDir)
+print("rootDir: " + rootDir)
 
+
+sys.path.insert(0, rootDir+'/xodUtil')
+import xodPlotUtil as xodplt
+
+sys.path.insert(1, rootDir+'/xodma')
+from xodmaAudioTools import write_wav
 
 # temp python debugger - use >>>pdb.set_trace() to set break
 import pdb
-
-# // *---------------------------------------------------------------------* //
-plt.close('all')
-clear_all()
-
-# // *---------------------------------------------------------------------* //
 
 
 # /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +56,6 @@ clear_all()
 # begin : function definitions
 # #############################################################################
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
 
 def nextpow2(x):
     """Return the first integer N such that 2**N >= abs(x)"""
@@ -71,11 +71,12 @@ def freq_shift(x, f_shift, dt):
     N_orig = len(x)
     N_padded = 2**nextpow2(N_orig)
     t = np.arange(0, N_padded)
-    hFilter = scipy.signal.hilbert(np.hstack((x, np.zeros(N_padded-N_orig, x.dtype))))
-    #pdb.set_trace()
-    return (hFilter*np.exp(2j*np.pi*f_shift*dt*t))[:N_orig].real    
+    hFilter = scipy.signal.hilbert(np.hstack((x, np.zeros(N_padded - N_orig, x.dtype))))
+    # pdb.set_trace()
+    return (hFilter * np.exp(2j * np.pi * f_shift * dt * t))[:N_orig].real
     
-    #return (scipy.signal.hilbert(np.hstack((x, np.zeros(N_padded-N_orig, x.dtype))))*np.exp(2j*np.pi*f_shift*dt*t))[:N_orig].real
+    # return (scipy.signal.hilbert(np.hstack((x, np.zeros(N_padded-N_orig,
+    #                              x.dtype))))*np.exp(2j*np.pi*f_shift*dt*t))[:N_orig].real
 
 
 # /////////////////////////////////////////////////////////////////////////////
@@ -85,8 +86,8 @@ def freq_shift(x, f_shift, dt):
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 
-#dt = 1e-3
-#fs = 1/dt
+# dt = 1e-3
+# fs = 1/dt
 
 fs = 48000
 dt = 1/fs
@@ -96,7 +97,7 @@ t = np.arange(0, T, dt)
 N = len(t)
 
 # Construct original signal:
-x = 3*np.cos(2*np.pi*t)+np.cos(2*np.pi*3*t)+2*np.cos(2*np.pi*5*t)
+x = 3 * np.cos(2 * np.pi * t) + np.cos(2 * np.pi * 3 * t) + 2 * np.cos(2 * np.pi * 5*t)
 
 # Uncomment the code below to construct a more interesting signal:
 # N_taps = 2500
@@ -112,11 +113,8 @@ f_shift = 10.0
 x_shift = freq_shift(x, f_shift, dt)
 
 
-
 fHilbert=sp.signal.remez(99, [0.03, 0.47],[1], type='hilbert');
-#freqz(b,axisFreqz=[0,np.pi,-50,10],axisPhase=[0,np.pi,-np.pi,np.pi])
-
-
+# freqz(b,axisFreqz=[0,np.pi,-50,10],axisPhase=[0,np.pi,-np.pi,np.pi])
 
 
 # Plot results:
@@ -143,7 +141,6 @@ plt.suptitle('Frequency Shifting Using SSB Modulation')
 plt.draw()
 
 
-
 # // *---------------------------------------------------------------------* //
 
 # // *---------------------------------------------------------------------* //
@@ -158,15 +155,11 @@ pltTitle = 'Input Signal x (first '+str(tLen)+' samples)'
 pltXlabel = 'x'
 pltYlabel = 'Amplitude'
 
-
 sig = x[0:tLen]
 # define a linear space from 0 to 1/2 Fs for x-axis:
 xaxis = np.linspace(0, tLen, tLen)
 
-
-odmkplt.odmkPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)
-
-
+xodplt.xodPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)
 
 # define a sub-range for wave plot visibility
 t2Len = len(fHilbert)
@@ -176,14 +169,11 @@ pltTitle = 'Hilbert Filter Coefficients ('+str(t2Len)+' taps)'
 pltXlabel = 'fHilbert'
 pltYlabel = 'Amplitude'
 
-
 sig = fHilbert
 # define a linear space from 0 to 1/2 Fs for x-axis:
 xaxis = np.linspace(0, t2Len, t2Len)
 
-
-odmkplt.odmkPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)
-
+xodplt.xodPlot1D(fnum, sig, xaxis, pltTitle, pltXlabel, pltYlabel)
 
 # // *---------------------------------------------------------------------* //
 # // *---Multi Plot - source signal array vs. FFT MAG out array---*
@@ -199,8 +189,10 @@ pltYlabel = 'Amplitude'
 # define a linear space from 0 to 1/2 Fs for x-axis:
 xaxis = np.linspace(0, tLen, tLen)
 
-#odmkplt.odmkMultiPlot1D(fnum, xArray[0:tLen,:], xaxis, pltTitle, pltXlabel, pltYlabel, colorMp='gnuplot')
-odmkplt.odmkMultiPlot1D(fnum, xArray[0:tLen,:], xaxis, pltTitle, pltXlabel, pltYlabel, colorMp='cool')
+# odmkplt.odmkMultiPlot1D(fnum, xArray[0:tLen,:], xaxis, pltTitle, pltXlabel, pltYlabel, colorMp='gnuplot')
+xodplt.xodMultiPlot1D(fnum, xArray[0:tLen,:], xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='cool')
 
+# // *---------------------------------------------------------------------* //
+# // *---------------------------------------------------------------------* //
 
 plt.show()

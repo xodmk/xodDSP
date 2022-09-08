@@ -52,8 +52,6 @@ from xodmaAudioTools import write_wav
 # temp python debugger - use >>>pdb.set_trace() to set break
 import pdb
 
-# run this command to de-embed plots
-# %matplotlib qt
 
 # // *---------------------------------------------------------------------* //
 
@@ -149,7 +147,7 @@ print('// *--------------------------------------------------------------* //')
 print('// *---::Instantiate clock & signal Generator objects::---*')
 print('// *--------------------------------------------------------------* //')
 
-tbClocks = clks.xodClocks(xLength, sr, bpm, framesPerSec)
+tbClocks = clks.XodClocks(xLength, sr, bpm, framesPerSec)
 
 numSamples = tbClocks.totalSamples
 
@@ -527,7 +525,7 @@ if plotMonoSin == 1:
     y_combined = y_combined.reshape((2, N))
     
     yfft_combined = np.concatenate((y_FFTscale, yArr_FFTscale))
-    yfft_combined = yfft_combined.reshape((2, int(N/2)))
+    yfft_combined = yfft_combined.reshape((2, int(N / 2)))
 
     # define a sub-range for wave plot visibility
     # tLen = 500

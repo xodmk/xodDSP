@@ -37,7 +37,7 @@ def cyclicZn(n):
     cZn = np.zeros((n, 1))*(0+0j)    # column vector of zero complex values
     for k in range(n):
         # z(k) = e^(((k)*2*pi*1j)/n)                         # Define cyclic group Zn points
-        cZn[k] = np.cos(((k)*2*np.pi)/n) + np.sin(((k)*2*np.pi)/n)*1j    # Euler's identity
+        cZn[k] = np.cos((k * 2 * np.pi) / n) + np.sin((k * 2 * np.pi) / n) * 1j    # Euler's identity
     return cZn
 
 
@@ -62,8 +62,8 @@ def randomIdx(n, k):
 # #############################################################################
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-class xodClocks:
-    ''' odmk audio/video clocking modules 
+class XodClocks:
+    ''' Xodmk audio/video clocking modules
         usage: myXodClks = xodClocks(outLength, fs, bpm, framesPerSec, tsig)
         xLength => defines length of seq in seconds (total track length)
         fs => audio sample rate
@@ -84,8 +84,8 @@ class xodClocks:
         self.framesPerSec = framesPerSec
         self.tsig = tsig        
         
-        #print('\nAn odmkClocks object has been instanced with:')
-        #print('xLength = '+str(self.xLength)+', fs = '+str(fs)+',
+        # print('\nAn odmkClocks object has been instanced with:')
+        # print('xLength = '+str(self.xLength)+', fs = '+str(fs)+',
         #      bpm = '+str(bpm)+', framesPerSec = '+str(framesPerSec))
 
         # *---Define Audio secondary Parameters---*
@@ -114,7 +114,6 @@ class xodClocks:
         # set totalFrames - Total video frames in x
         self.totalFrames = int(np.ceil(xLength * framesPerSec))
 
-
     # // ******************************************************************* //
     # // *---sequence generators
     # // ******************************************************************* //
@@ -124,7 +123,7 @@ class xodClocks:
     # // *-----------------------------------------------------------------* //
 
     def clkDownBeats(self):
-        ''' generates an output array of 1s at downbeat, 0s elsewhere '''
+        """ generates an output array of 1s at downbeat, 0s elsewhere """
 
         xClockDown = np.zeros([self.totalSamples])
         for i in range(self.totalSamples):
@@ -136,7 +135,7 @@ class xodClocks:
     
     # Python Generator
     def clkDownBeatsGnr(self):
-        ''' generates an output array of 1s at downbeat, 0s elsewhere '''
+        """ generates an output array of 1s at downbeat, 0s elsewhere """
         for i in range(self.totalSamples):
             if i % np.ceil(self.samplesPerBeat) == 0:
                 yield 1
@@ -144,8 +143,8 @@ class xodClocks:
                 yield 0
 
     def clkDownFrames(self):
-        ''' generates 1s at frames corresponding to
-            downbeats, 0s elsewhere '''
+        """ generates 1s at frames corresponding to
+            downbeats, 0s elsewhere """
 
         xFramesDown = np.zeros([self.totalSamples])
         for i in range(self.totalSamples):
@@ -156,8 +155,8 @@ class xodClocks:
         return xFramesDown
     
     def clkDownFramesGnr(self):
-        ''' generates 1s at frames corresponding to
-            downbeats, 0s elsewhere '''
+        """ generates 1s at frames corresponding to
+            downbeats, 0s elsewhere """
 
         for i in range(self.totalSamples):
             if i % np.ceil(self.framesPerBeat) == 0:
@@ -170,7 +169,7 @@ class xodClocks:
     # // *-----------------------------------------------------------------* //
 
     def clkQtrBeat(self):
-        ''' Output a 1 at Qtr downbeat for xLength samples '''
+        """ Output a 1 at Qtr downbeat for xLength samples """
 
         # set samplesPerBeat
         samplesPerQtr = self.samplesPerBeat    # assume 1Qtr = 1Beat
@@ -184,7 +183,7 @@ class xodClocks:
         return xQtrBeat
     
     def clkQtrBeatGnr(self):
-        ''' Output a 1 at Qtr downbeat for xLength samples '''
+        """ Output a 1 at Qtr downbeat for xLength samples """
 
         # set samplesPerBeat
         samplesPerQtr = self.samplesPerBeat    # assume 1Qtr = 1Beat
@@ -194,15 +193,14 @@ class xodClocks:
                 yield 1
             else:
                 yield 0
-        
 
     # // *-----------------------------------------------------------------* //
     # // *---gen X note sequence (xLength samples)
     # // *-----------------------------------------------------------------* //
 
     def clkXBeat(self, Xnote):
-        ''' Output a Xnote downbeat for xLength samples 
-            Xnote: 1=whole, 2=half, 3=third, 4=quarter, 5=fifth...'''
+        """ Output a Xnote downbeat for xLength samples
+            Xnote: 1=whole, 2=half, 3=third, 4=quarter, 5=fifth..."""
 
         XBeat = np.zeros([self.totalSamples])
         XnoteInv = 1/Xnote
@@ -215,8 +213,8 @@ class xodClocks:
         return XBeat
         
     def clkXBeatGnr(self, Xnote):
-        ''' Output a Xnote downbeat for xLength samples 
-            Xnote: 1=whole, 2=half, 3=third, 4=quarter, 5=fifth...'''
+        """ Output a Xnote downbeat for xLength samples
+            Xnote: 1=whole, 2=half, 3=third, 4=quarter, 5=fifth..."""
 
         XnoteInv = 1/Xnote
         Xsamples = XnoteInv*self.samplesPerBar
@@ -231,9 +229,9 @@ class xodClocks:
     # // *-----------------------------------------------------------------* //
 
     def clkXPulse(self, Xnote, pulseWidth):
-        ''' Output a Xnote downbeat for xLength samples 
+        """ Output a Xnote downbeat for xLength samples
             Xnote: 1=whole, 2=half, 3=third, 4=quarter, 5=fifth...
-            pulseWidth = number of samples per pulse'''
+            pulseWidth = number of samples per pulse"""
 
         XPulse = np.zeros([self.totalSamples])
         XnoteInv = 1/Xnote
@@ -249,9 +247,9 @@ class xodClocks:
         return XPulse
     
     def clkXPulseGnr(self, Xnote, pulseWidth):
-        ''' Output a Xnote downbeat for xLength samples 
+        """ Output a Xnote downbeat for xLength samples
             Xnote: 1=whole, 2=half, 3=third, 4=quarter, 5=fifth...
-            pulseWidth = number of samples per pulse'''
+            pulseWidth = number of samples per pulse"""
 
         XnoteInv = 1/Xnote
         Xsamples = int(np.ceil(XnoteInv*self.samplesPerBar))
@@ -264,14 +262,13 @@ class xodClocks:
             else:
                 yield 0
 
-
     # // *-----------------------------------------------------------------* //
     # // *---gen note sequence (nBar # of bars)
     # // *-----------------------------------------------------------------* //
 
     def clkQtrBeatBar(self, nBar=1):
-        ''' Output a 1 at Qtr downbeat for 'nBar' bars (4/4, 4 qtr notes)
-            optional nBar parameter: default nBar = 1 bar '''
+        """ Output a 1 at Qtr downbeat for 'nBar' bars (4/4, 4 qtr notes)
+            optional nBar parameter: default nBar = 1 bar """
 
         numSamples = int(np.ceil(nBar * self.samplesPerBar))
         xQtrBar = np.zeros([numSamples])
@@ -283,8 +280,8 @@ class xodClocks:
         return xQtrBar
 
     def clkQtrBeatBarGnr(self, nBar=1):
-        ''' Output a 1 at Qtr downbeat for 'nBar' bars (4/4, 4 qtr notes)
-            optional nBar parameter: default nBar = 1 bar '''
+        """ Output a 1 at Qtr downbeat for 'nBar' bars (4/4, 4 qtr notes)
+            optional nBar parameter: default nBar = 1 bar """
 
         numSamples = int(np.ceil(nBar * self.samplesPerBar))
         for i in range(numSamples):
@@ -313,9 +310,8 @@ class xodClocks:
 #                xDiv3Beat[i] = 0
 #        return xDiv3Beat
 
-
     def clkDivNBeat(self, n):
-        ''' Output a pulse every bar/n samples for xLength samples '''
+        """ Output a pulse every bar/n samples for xLength samples """
 
         # set samplesPerBeat
         # samplesPerBar = self.samplesPerBar    # assume 1Qtr = 1Beat
@@ -330,7 +326,7 @@ class xodClocks:
         return clkDivNBeat
     
     def clkDivNBeatGnr(self, n):
-        ''' Output a pulse every bar/n samples for xLength samples '''
+        """ Output a pulse every bar/n samples for xLength samples """
 
         # set samplesPerBeat
         # samplesPerBar = self.samplesPerBar    # assume 1Qtr = 1Beat
