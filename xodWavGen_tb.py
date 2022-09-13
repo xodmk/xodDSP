@@ -59,7 +59,7 @@ print('// //////////////////////////////////////////////////////////////// //')
 print('// *--------------------------------------------------------------* //')
 print('// *---::XODMK Waveform Generator 1::---*')
 print('// *--------------------------------------------------------------* //')
-print('// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ //')
+print('// //////////////////////////////////////////////////////////////// //')
 
 
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -69,7 +69,7 @@ print('// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ //')
 
 def cyclicZn(n):
     """ calculates the Zn roots of unity """
-    cZn = np.zeros((n, 1))*(0+0j)    # column vector of zero complex values
+    cZn = np.zeros((n, 1)) * (0+0j)    # column vector of zero complex values
     for k in range(n):
         # z(k) = e^(((k)*2*pi*1j)/n)        # Define cyclic group Zn points
         cZn[k] = np.cos((k * 2 * np.pi) / n) + np.sin((k * 2 * np.pi) / n) * 1j   # Euler's identity
@@ -79,7 +79,7 @@ def cyclicZn(n):
 
 # /////////////////////////////////////////////////////////////////////////////
 # #############################################################################
-# begin Test:
+# begin Tests:
 # #############################################################################
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -116,14 +116,17 @@ testFreq1 = 777.0
 testPhase1 = 0
 
 
-# select generated waveforms
+# select generate waveforms
 genMonoSin = 0
 genMonoTri = 0
 genLFO = 0
 genSinArray = 0
 genOrthoSinArray = 1
+genOrthoSinArray4CH = 0
 genCompositeSinArray = 0
 
+
+# select input waveform verification
 genWavetableOsc = 0
 if genWavetableOsc == 1:
     # shape:
@@ -163,11 +166,8 @@ tbclkDownBeats = tbClocks.clkDownBeats()
 
 
 # /////////////////////////////////////////////////////////////////////////////
-# #############################################################################
 # begin : Generate source waveforms
-# #############################################################################
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
 
 # // *---------------------------------------------------------------------* //
 # generate simple mono sin waves
@@ -325,7 +325,7 @@ else:
 
     
 # // *---------------------------------------------------------------------* //    
-# generate array of sin waves
+# generate orthogonal array of sin waves
 if genOrthoSinArray == 1:
     
     plotOrthoSinArray = 1    
@@ -382,6 +382,43 @@ else:
     plotOrthoSinArray = 0
 
 # // *---------------------------------------------------------------------* //
+# generate orthogonal array of sin waves - 4 CHannels
+if genOrthoSinArray4CH == 1:
+
+    plotOrthoSinArray4CH = 1
+
+    print('\n::Orthogonal Multi Sine source 4CH::')
+
+    # for n freqs, use 2n+1 => skip DC and negative freqs!
+    # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
+
+    OrthoFreq4CH = 4
+    czn = cyclicZn(2 * OrthoFreq4CH + 1)
+
+    orthoFreqArray4CH = np.array([])
+    for c in range(1, OrthoFreq4CH + 1):
+        cznph = np.arctan2(czn[c].imag, czn[c].real)
+        cznFreq = (sr * cznph) / (2 * np.pi)
+        cznFreqInt = int(cznFreq)
+        orthoFreqArray4CH = np.append(orthoFreqArray4CH, cznFreqInt)
+
+    print('Orthogonal Frequency Array 4CH (Hz):')
+    print(orthoFreqArray4CH)
+
+    # pdb.set_trace()
+
+    orthoSinArray4CH = np.array([])
+    for freq in orthoFreqArray4CH:
+        orthoSinArray4CH = np.concatenate((orthoSinArray4CH, tbWavGen.monosinArray(freq)))
+    orthoSinArray4CH = orthoSinArray4CH.reshape((OrthoFreq4CH, numSamples))
+
+    print('generated 4CH array of orthogonal sin signals "orthoSinArray4CH"')
+
+else:
+    plotOrthoSinArray4CH = 0
+
+
+# // *---------------------------------------------------------------------* //
 # generate a composite signal of an array of sin waves "sum of sines"
 if genCompositeSinArray == 1:
     
@@ -416,8 +453,8 @@ if genCompositeSinArray == 1:
 else:
     plotCompositeSinArray = 0
 
-
 # // *---------------------------------------------------------------------* //
+
 
 # #############################################################################
 # Wavetable Synthesis
@@ -778,7 +815,52 @@ if plotOrthoSinArray == 1:
     xfnyq = np.linspace(0.0, 1.0/(2.0*T), int(N/2))
     
     xodplt.xodMultiPlot1D(fnum, yOrthoScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
-   
+
+
+# // *---------------------------------------------------------------------* //
+
+if plotOrthoSinArray4CH == 1:
+
+    # // *---------------------------------------------------------------------* //
+    # // *---Array of Orthogonal Sines 4CH plots---*
+
+    # Test FFT length
+    N = 4096
+
+    tLen = N
+
+    numFreqs = 4
+
+    yOrthoArray4CH = np.array([])
+    yOrthoScaleArray4CH = np.array([])
+    # for h in range(len(sinArray[0, :])):
+    for h in range(numFreqs):
+        yOrthoFFT4CH = np.fft.fft(orthoSinArray4CH[h, 0:N])
+        yOrthoArray4CH = np.concatenate((yOrthoArray4CH, yOrthoFFT4CH))
+        yOrthoScaleArray4CH = np.concatenate((yOrthoScaleArray4CH, 2.0 / N * np.abs(yOrthoFFT4CH[0:int(N / 2)])))
+    yOrthoArray4CH = yOrthoArray4CH.reshape((numFreqs, N))
+    yOrthoScaleArray4CH = yOrthoScaleArray4CH.reshape(numFreqs, (int(N / 2)))
+
+    fnum = 36
+    pltTitle = 'Input Signals: orthoSinArray (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'orthoSinArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodMultiPlot1D(fnum, orthoSinArray4CH, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    fnum = 37
+    pltTitle = 'FFT Mag: yOrthoScaleArray4CH multi-osc '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodMultiPlot1D(fnum, yOrthoScaleArray4CH, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
 # // *---------------------------------------------------------------------* //
 
 if plotCompositeSinArray == 1:

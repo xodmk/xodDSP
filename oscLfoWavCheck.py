@@ -138,6 +138,11 @@ genSinArray = 0
 genOrthoSinArray = 1
 genCompositeSinArray = 0
 
+
+# select input waveform verification
+checkOrthoSinArray4CH = 1
+
+
 genWavetableOsc = 0
 if genWavetableOsc == 1:
     # shape:
@@ -195,24 +200,11 @@ if genMonoSin == 1:
     # use specific signal length (** must include sample rate before length)
     monoSinOutxl = np.array([y for y in tbWavGen.monosin(monoSinFreq, sr, xl)])
 
-    if createWavFile == 1:
-        wavGenMonoSinOut = wavGenOutDir + 'MonoSinOut.wav'
-        write_wav(wavGenMonoSinOut, monoSinOut, sr)
-
-        wavGenMonoSinOutxl = wavGenOutDir + 'MonoSinOutxl.wav'
-        write_wav(wavGenMonoSinOutxl, monoSinOutxl, sr)
-
-        # Test mono sin Array function
+    # Test mono sin Array function
 
     monoSinArrayOut = tbWavGen.monosinArray(monoSinFreq)
     monoSinArrayOutxl = tbWavGen.monosinArray(monoSinFreq, sr, xl)
 
-    if createWavFile == 1:
-        wavGenMonoSinOut = wavGenOutDir + 'MonoSinArrayOut.wav'
-        write_wav(wavGenMonoSinOut, monoSinArrayOut, sr)
-
-        wavGenMonoSinOutxl = wavGenOutDir + 'MonoSinArrayOutxl.wav'
-        write_wav(wavGenMonoSinOutxl, monoSinArrayOutxl, sr)
 
 else:
     plotMonoSin = 0
@@ -236,26 +228,8 @@ if genMonoTri == 1:
     # use specific signal length
     monoTriOutxl = np.array([y for y in tbWavGen.monotri(monoTriFreq, sr, xl)])
 
-    # pdb.set_trace()
-
-    if createWavFile == 1:
-        wavGenMonoTriOut = wavGenOutDir + 'MonoTriOut.wav'
-        write_wav(wavGenMonoTriOut, monoTriOut, sr)
-
-        wavGenMonoTriOutxl = wavGenOutDir + 'MonoTriOutxl.wav'
-        write_wav(wavGenMonoTriOutxl, monoTriOutxl, sr)
-
-        # Test mono sin Array function
-
     monoTriArrayOut = tbWavGen.monotriArray(monoTriFreq, sr, xl)
     monoTriArrayOutxl = tbWavGen.monotriArray(monoTriFreq, sr, xl)
-
-    if createWavFile == 1:
-        wavGenMonoTriOut = wavGenOutDir + 'MonoTriArrayOut.wav'
-        write_wav(wavGenMonoTriOut, monoTriArrayOut, sr)
-
-        wavGenMonoTriOutxl = wavGenOutDir + 'MonoTriArrayOutxl.wav'
-        write_wav(wavGenMonoTriOutxl, monoTriArrayOutxl, sr)
 
 
 else:
@@ -388,7 +362,6 @@ if genCompositeSinArray == 1:
     print('\n::Composite Multi Sine source::')
 
     # user:
-
     odmkTestFreqArray2_1 = [444.0, 1776.0]
     odmkTestFreqArray2_2 = [2500.0, 5000.0]
 
@@ -407,14 +380,69 @@ if genCompositeSinArray == 1:
     print('Generated composite sine signal: sinOrth5Comp1')
     print('generated a Composite array of sin signals "orthoSinComp1"')
 
-    if createWavFile == 1:
-        wavGenMultiSinOut = wavGenOutDir + 'multiSinOut.wav'
-        write_wav(wavGenMultiSinOut, multiSinOut, sr)
 
 else:
     plotCompositeSinArray = 0
 
+
 # // *---------------------------------------------------------------------* //
+
+# /////////////////////////////////////////////////////////////////////////////
+# begin : input waveform verification
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+# // *---------------------------------------------------------------------* //
+# generate orthogonal array of sin waves - 4 CHannels
+if checkOrthoSinArray4CH == 1:
+
+    plotCheckOrthoSinArray4CH = 1
+
+    numChannels = 4
+
+    print('\n::Check Orthogonal Multi Sine source 4CH::')
+
+    srcWav = np.array([])
+    arraySrcWav = np.array([])
+
+    srcWav[0] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_0.txt'
+    srcWav[1] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_1.txt'
+    srcWav[2] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_2.txt'
+    srcWav[3] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_3.txt'
+
+    for ch in numChannels:
+        arraySrcWav[ch] = arrayFromFile(srcWav[ch])
+
+
+    # for n freqs, use 2n+1 => skip DC and negative freqs!
+    # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
+
+    czn = cyclicZn(2 * numChannels + 1)
+
+    orthoFreqArray4CH = np.array([])
+    for c in range(1, numChannels + 1):
+        cznph = np.arctan2(czn[c].imag, czn[c].real)
+        cznFreq = (sr * cznph) / (2 * np.pi)
+        cznFreqInt = int(cznFreq)
+        orthoFreqArray4CH = np.append(orthoFreqArray4CH, cznFreqInt)
+
+    print('Orthogonal Frequency Array 4CH (Hz):')
+    print(orthoFreqArray4CH)
+
+    # pdb.set_trace()
+
+    orthoSinArray4CH = np.array([])
+    for freq in orthoFreqArray4CH:
+        orthoSinArray4CH = np.concatenate((orthoSinArray4CH, tbWavGen.monosinArray(freq)))
+    orthoSinArray4CH = orthoSinArray4CH.reshape((numChannels, numSamples))
+
+    print('generated 4CH array of orthogonal sin signals "orthoSinArray4CH"')
+
+else:
+    plotCheckOrthoSinArray4CH = 0
+
+
+# // *---------------------------------------------------------------------* //
+
 
 # /////////////////////////////////////////////////////////////////////////////
 # #############################################################################
@@ -443,8 +471,6 @@ if plotWavSource == 1:
     y_FFTscale = 2.0 / N * np.abs(y_FFT[0:int(N / 2)])
     # y_Mag = np.abs(y_FFT)
     # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
-
-
 
     # define a sub-range for wave plot visibility
     # tLen = 500
