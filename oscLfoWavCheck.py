@@ -129,18 +129,18 @@ createWavFile = 0
 testFreq1 = 777.0
 testPhase1 = 0
 
+# FIXIT FIXIT - redundant (xodWavGen_tb) replace with verifications
 # select generated waveforms
 importWavSource = 1
 genMonoSin = 0
 genMonoTri = 0
 genLFO = 0
 genSinArray = 0
-genOrthoSinArray = 1
 genCompositeSinArray = 0
 
 
 # select input waveform verification
-checkOrthoSinArray4CH = 1
+checkOrthogSinArray = 1
 
 
 genWavetableOsc = 0
@@ -298,62 +298,6 @@ else:
     plotSinArray = 0
 
 # // *---------------------------------------------------------------------* //
-# generate array of sin waves
-if genOrthoSinArray == 1:
-
-    plotOrthoSinArray = 1
-
-    #    numOrtFreqs = 7
-    #    nCzn = cyclicZn(numOrtFreqs)
-    #
-    #
-    #    nOrthogonalArray = np.array([])
-    #    for c in range(numOrtFreqs):
-    #        nCznPh = np.arctan2(nCzn[c].imag, nCzn[c].real)
-    #        nOrthogonalArray = np.append(nOrthogonalArray, (fs*nCznPh)/(2*np.pi))
-
-    # Example orthogonal array:
-    # >>> nCzn =7
-    # array([[ 1.00000000+0.j        ],
-    #       [ 0.62348980+0.78183148j],
-    #       [-0.22252093+0.97492791j],
-    #       [-0.90096887+0.43388374j],
-    #       [-0.90096887-0.43388374j],
-    #       [-0.22252093-0.97492791j],
-    #       [ 0.62348980-0.78183148j]])
-
-    # generate a set of orthogonal frequencies
-
-    print('\n::Orthogonal Multi Sine source::')
-
-    # for n freqs, use 2n+1 => skip DC and negative freqs!
-    # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
-
-    numOrthoFreq = 7
-    czn = cyclicZn(2 * numOrthoFreq + 1)
-
-    orthoFreqArray = np.array([])
-    for c in range(1, numOrthoFreq + 1):
-        cznph = np.arctan2(czn[c].imag, czn[c].real)
-        cznFreq = (sr * cznph) / (2 * np.pi)
-        orthoFreqArray = np.append(orthoFreqArray, cznFreq)
-
-    print('Orthogonal Frequency Array (Hz):')
-    print(orthoFreqArray)
-
-    # pdb.set_trace()
-
-    orthoSinArray = np.array([])
-    for freq in orthoFreqArray:
-        orthoSinArray = np.concatenate((orthoSinArray, tbWavGen.monosinArray(freq)))
-    orthoSinArray = orthoSinArray.reshape((numOrthoFreq, numSamples))
-
-    print('generated array of orthogonal sin signals "orthoSinArray"')
-
-else:
-    plotOrthoSinArray = 0
-
-# // *---------------------------------------------------------------------* //
 # generate a composite signal of an array of sin waves "sum of sines"
 if genCompositeSinArray == 1:
 
@@ -393,52 +337,51 @@ else:
 
 # // *---------------------------------------------------------------------* //
 # generate orthogonal array of sin waves - 4 CHannels
-if checkOrthoSinArray4CH == 1:
+if checkOrthogSinArray == 1:
 
-    plotCheckOrthoSinArray4CH = 1
+    plotCheckOrthogSinArray4CH = 1
 
-    numChannels = 4
+    numOrthogChannels = 4
 
     print('\n::Check Orthogonal Multi Sine source 4CH::')
 
-    srcWav = np.array([])
-    arraySrcWav = np.array([])
+    srcWav = []
+    srcWavArray = np.array([])
 
-    srcWav[0] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_0.txt'
-    srcWav[1] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_1.txt'
-    srcWav[2] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_2.txt'
-    srcWav[3] = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_3.txt'
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_0.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_1.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_2.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_3.txt')
 
-    for ch in numChannels:
-        arraySrcWav[ch] = arrayFromFile(srcWav[ch])
-
+    for c in range(1, numOrthogChannels):
+        srcWavArray = np.append(srcWavArray, arrayFromFile(srcWav[c]))
 
     # for n freqs, use 2n+1 => skip DC and negative freqs!
     # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
 
-    czn = cyclicZn(2 * numChannels + 1)
+    czn = cyclicZn(2 * numOrthogChannels + 1)
 
-    orthoFreqArray4CH = np.array([])
-    for c in range(1, numChannels + 1):
+    orthogFreqArray = np.array([])
+    for c in range(1, numOrthogChannels + 1):
         cznph = np.arctan2(czn[c].imag, czn[c].real)
         cznFreq = (sr * cznph) / (2 * np.pi)
         cznFreqInt = int(cznFreq)
-        orthoFreqArray4CH = np.append(orthoFreqArray4CH, cznFreqInt)
+        orthogFreqArray = np.append(orthogFreqArray, cznFreqInt)
 
     print('Orthogonal Frequency Array 4CH (Hz):')
-    print(orthoFreqArray4CH)
+    print(orthogFreqArray)
 
     # pdb.set_trace()
 
-    orthoSinArray4CH = np.array([])
-    for freq in orthoFreqArray4CH:
-        orthoSinArray4CH = np.concatenate((orthoSinArray4CH, tbWavGen.monosinArray(freq)))
-    orthoSinArray4CH = orthoSinArray4CH.reshape((numChannels, numSamples))
+    orthogSinArray = np.array([])
+    for freq in orthogFreqArray:
+        orthogSinArray = np.concatenate((orthogSinArray, tbWavGen.monosinArray(freq)))
+    orthogSinArray = orthogSinArray.reshape((numOrthogChannels, numSamples))
 
-    print('generated 4CH array of orthogonal sin signals "orthoSinArray4CH"')
+    print('generated 4CH array of orthogonal sin signals "orthogSinArray4CH"')
 
 else:
-    plotCheckOrthoSinArray4CH = 0
+    plotCheckOrthogSinArray = 0
 
 
 # // *---------------------------------------------------------------------* //
@@ -728,7 +671,7 @@ if plotSinArray == 1:
 
 # // *---------------------------------------------------------------------* //
 
-if plotOrthoSinArray == 1:
+if plotCheckOrthogSinArray4CH == 1:
 
     # // *---------------------------------------------------------------------* //
     # // *---Array of Orthogonal Sines wave plots---*
@@ -738,17 +681,17 @@ if plotOrthoSinArray == 1:
 
     tLen = N
 
-    numFreqs = numOrthoFreq
+    numFreqs = numOrthogChannels
 
-    yOrthoArray = np.array([])
-    yOrthoScaleArray = np.array([])
+    yOrthogArray = np.array([])
+    yOrthogScaleArray = np.array([])
     # for h in range(len(sinArray[0, :])):
     for h in range(numFreqs):
-        yOrthoFFT = np.fft.fft(orthoSinArray[h, 0:N])
-        yOrthoArray = np.concatenate((yOrthoArray, yOrthoFFT))
-        yOrthoScaleArray = np.concatenate((yOrthoScaleArray, 2.0 / N * np.abs(yOrthoFFT[0:int(N / 2)])))
-    yOrthoArray = yOrthoArray.reshape((numFreqs, N))
-    yOrthoScaleArray = yOrthoScaleArray.reshape(numFreqs, (int(N / 2)))
+        yOrthogFFT = np.fft.fft(orthogSinArray[h, 0:N])
+        yOrthogArray = np.concatenate((yOrthogArray, yOrthogFFT))
+        yOrthogScaleArray = np.concatenate((yOrthogScaleArray, 2.0 / N * np.abs(yOrthogFFT[0:int(N / 2)])))
+    yOrthogArray = yOrthogArray.reshape((numFreqs, N))
+    yOrthogScaleArray = yOrthogScaleArray.reshape(numFreqs, (int(N / 2)))
 
     fnum = 50
     pltTitle = 'Input Signals: orthoSinArray (first ' + str(tLen) + ' samples)'
@@ -758,17 +701,17 @@ if plotOrthoSinArray == 1:
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
 
-    xodplt.xodMultiPlot1D(fnum, orthoSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+    xodplt.xodMultiPlot1D(fnum, orthogSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
     fnum = 51
-    pltTitle = 'FFT Mag: yOrthoScaleArray multi-osc '
+    pltTitle = 'FFT Mag: yOrthogScaleArray multi-osc '
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
 
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
 
-    xodplt.xodMultiPlot1D(fnum, yOrthoScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+    xodplt.xodMultiPlot1D(fnum, yOrthogScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
 # // *---------------------------------------------------------------------* //
 
@@ -813,6 +756,8 @@ if plotCompositeSinArray == 1:
     xodplt.xodPlot1D(fnum, sinComp1_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
 
     # // *-----------------------------------------------------------------* //
+
+    arraySrcWav
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
