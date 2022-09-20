@@ -104,14 +104,14 @@ def arrayFromFile(fname):
 # // *---::Set Parameters for test output::---*')
 
 # length of x in seconds:
-xLength = 5
+xLength = 5  # 0.0024
 # audio sample rate:
 sr = 48000
-Fclk = 100000000    # FPGA DDS test
+# Fclk = 100000000    # FPGA DDS test
 
 # sample period
 T = 1.0 / sr
-Tfclk = 1.0 / Fclk
+# Tfclk = 1.0 / Fclk
 
 # audio sample bit width
 bWidth = 24
@@ -131,7 +131,7 @@ testPhase1 = 0
 
 # FIXIT FIXIT - redundant (xodWavGen_tb) replace with verifications
 # select generated waveforms
-importWavSource = 1
+importWavSource = 0
 genMonoSin = 0
 genMonoTri = 0
 genLFO = 0
@@ -346,6 +346,7 @@ if checkOrthogSinArray == 1:
     print('\n::Check Orthogonal Multi Sine source 4CH::')
 
     srcWav = []
+    srcArrayTmp = np.array([])
     srcWavArray = np.array([])
 
     srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_0.txt')
@@ -353,8 +354,10 @@ if checkOrthogSinArray == 1:
     srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_2.txt')
     srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_3.txt')
 
-    for c in range(1, numOrthogChannels):
-        srcWavArray = np.append(srcWavArray, arrayFromFile(srcWav[c]))
+    for c in range(numOrthogChannels):
+        srcArrayTmp = arrayFromFile(srcWav[c])
+        srcWavArray = np.concatenate((srcWavArray, srcArrayTmp))
+    srcWavArray = srcWavArray.reshape(numOrthogChannels, len(srcArrayTmp))
 
     # for n freqs, use 2n+1 => skip DC and negative freqs!
     # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
@@ -364,7 +367,7 @@ if checkOrthogSinArray == 1:
     orthogFreqArray = np.array([])
     for c in range(1, numOrthogChannels + 1):
         cznph = np.arctan2(czn[c].imag, czn[c].real)
-        cznFreq = (sr * cznph) / (2 * np.pi)
+        cznFreq = (sr/2 * cznph) / (2 * np.pi)  # limit max freq to 12 KHz (HLS step freq ctrl uses +/- 24bits)
         cznFreqInt = int(cznFreq)
         orthogFreqArray = np.append(orthogFreqArray, cznFreqInt)
 
@@ -431,11 +434,11 @@ if plotWavSource == 1:
     # plot y freq domain:
     fnum = 2
     pltTitle = 'plt2: FFT Mag Input Wave Source'
-    pltXlabel = 'Frequency: 0 - ' + str(Fclk / 2) + ' Hz'
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
 
     # define a linear space from 0 to 1/2 Fs for x-axis:
-    xfnyq = np.linspace(0.0, 1.0 / (2.0 * Tfclk), int(N / 2))
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
     xodplt.xodPlot1D(fnum, y_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
 
 
@@ -679,20 +682,36 @@ if plotCheckOrthogSinArray4CH == 1:
     # Test FFT length
     N = 4096
 
+    assert len(orthogSinArray[0, :]) >= N
+    assert len(srcWavArray[0, :]) >= N
+
     tLen = N
 
     numFreqs = numOrthogChannels
 
+    # orthogSinArray - python generated waveforms
+    # srcWavArray - imported waveforms from c++ file i/o
+
     yOrthogArray = np.array([])
     yOrthogScaleArray = np.array([])
+    ySrcWavArray = np.array([])
+    ySrcWavScaleArray = np.array([])
+
     # for h in range(len(sinArray[0, :])):
     for h in range(numFreqs):
         yOrthogFFT = np.fft.fft(orthogSinArray[h, 0:N])
         yOrthogArray = np.concatenate((yOrthogArray, yOrthogFFT))
         yOrthogScaleArray = np.concatenate((yOrthogScaleArray, 2.0 / N * np.abs(yOrthogFFT[0:int(N / 2)])))
+        ySrcWavFFT = np.fft.fft(srcWavArray[h, 0:N])
+        ySrcWavArray = np.concatenate((ySrcWavArray, ySrcWavFFT))
+        ySrcWavScaleArray = np.concatenate((ySrcWavScaleArray, 2.0 / N * np.abs(ySrcWavFFT[0:int(N / 2)])))
     yOrthogArray = yOrthogArray.reshape((numFreqs, N))
     yOrthogScaleArray = yOrthogScaleArray.reshape(numFreqs, (int(N / 2)))
+    ySrcWavArray = ySrcWavArray.reshape((numFreqs, N))
+    ySrcWavScaleArray = ySrcWavScaleArray.reshape(numFreqs, (int(N / 2)))
 
+    # // *---------------------------------------------------------------------* //
+    # *** plot python generated waveforms ***
     fnum = 50
     pltTitle = 'Input Signals: orthoSinArray (first ' + str(tLen) + ' samples)'
     pltXlabel = 'orthoSinArray time-domain wav'
@@ -712,6 +731,29 @@ if plotCheckOrthogSinArray4CH == 1:
     xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
 
     xodplt.xodMultiPlot1D(fnum, yOrthogScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    # // *---------------------------------------------------------------------* //
+    # *** plot imported imported waveforms ***
+    fnum = 52
+    pltTitle = 'Input Signals: srcWavArray (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'srcWavArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodMultiPlot1D(fnum, srcWavArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    fnum = 53
+    pltTitle = 'FFT Mag: ySrcWavScaleArray multi-osc '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodMultiPlot1D(fnum, ySrcWavScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
 
 # // *---------------------------------------------------------------------* //
 
@@ -757,7 +799,6 @@ if plotCompositeSinArray == 1:
 
     # // *-----------------------------------------------------------------* //
 
-    arraySrcWav
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
