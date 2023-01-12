@@ -4,11 +4,11 @@
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 # *****************************************************************************
 #
-# __::((xodDoppler.py))::__
+# __::((xodPeaks.py))::__
 #
-# XODMK Python Xperimental Doppler Processor
+# XODMK Python Xperimental Peak Detection
 # required lib:
-# odmkClocks ; xodWavGen
+#
 #
 # Requirements
 # sudo apt-get install python3-tk
@@ -21,12 +21,14 @@
 import os
 import sys
 import numpy as np
+import librosa
+import librosa.display
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-import xodClocks as clks
-import xodWavGen as wavGen
+# import xodClocks as clks
+# import xodWavGen as wavGen
 
 
 # // *---------------------------------------------------------------------* //
@@ -75,35 +77,6 @@ wavSrcA = 'slothForest_btx01.wav'
 # '###' => usr defined length in SECONDS
 wavLength = 0
 
-NFFT = 2048
-STFTHOP = int(NFFT/4)
-WIN = 'hann'
-
-
-''' Valid Window Types: 
-
-boxcar
-triang
-blackman
-hamming
-hann
-bartlett
-flattop
-parzen
-bohman
-blackmanharris
-nuttall
-barthann
-kaiser (needs beta)
-gaussian (needs standard deviation)
-general_gaussian (needs power, width)
-slepian (needs width)
-dpss (needs normalized half-bandwidth)
-chebwin (needs attenuation)
-exponential (needs decay scale)
-tukey (needs taper fraction)
-
-'''
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
@@ -120,91 +93,66 @@ audioSrcA = audioSrcDir + wavSrcA
 # [bSrc, bNumChannels, bfs, bLength, bSamples] = load_wav(audioSrcB, wavLength, True)
 
 if aNumChannels == 2:
-	aSrc_ch1 = aSrc[:, 0]
-	aSrc_ch2 = aSrc[:, 1]
+    aSrc_ch1 = aSrc[:, 0]
+    aSrc_ch2 = aSrc[:, 1]
 else:
-	aSrc_ch1 = aSrc
-	aSrc_ch2 = 0
+    aSrc_ch1 = aSrc
+    aSrc_ch2 = 0
 
-# if bNumChannels == 2:
-#    bSrc_ch1 = bSrc[:,0];
-#    bSrc_ch2 = bSrc[:,1];
-# else:
-#    bSrc_ch1 = bSrc;
-#    bSrc_ch2 = 0;
-
-
-# aT = 1.0 / afs
-# print('\nsample period: ------------------------- '+str(aT))
-# print('wav file datatype: '+str(sf.info(audioSrcA).subtype))
-
+sr = afs
+num_samples = aSrc_ch1.size
 
 # // *--- Plot - source signal ---*
 
 if 1:
-	fnum = 3
-	pltTitle = 'Input Signals: aSrc_ch1'
-	pltXlabel = 'sinArray time-domain wav'
-	pltYlabel = 'Magnitude'
 
-	# define a linear space from 0 to 1/2 Fs for x-axis:
-	xaxis = np.linspace(0, len(aSrc_ch1), len(aSrc_ch1))
+    plt.figure(figsize=(14, 5))
+    librosa.display.waveshow(aSrc_ch1, sr=sr)
 
-	xodplt.xodPlot1D(fnum, aSrc_ch1, xaxis, pltTitle, pltXlabel, pltYlabel)
+    fnum = 3
+    pltTitle = 'Input Signals: aSrc_ch1'
+    pltXlabel = 'sinArray time-domain wav'
+    pltYlabel = 'Magnitude'
 
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, len(aSrc_ch1), len(aSrc_ch1))
+
+    xodplt.xodPlot1D(fnum, aSrc_ch1, xaxis, pltTitle, pltXlabel, pltYlabel)
 
 # pdb.set_trace()
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
 
-fs = afs
-# fs = 48000
-# ch1 = (np.sin(2*np.pi*np.arange(80000)*2000/fs)).astype(np.float32)
 
-num_samples = aSrc_ch1.size
+# Compute an onset envelope:
+hop_length = 256
+onset_envelope = librosa.onset.onset_strength(aSrc_ch1, sr=sr, hop_length=hop_length)
 
-# force num_samples to be even
-num_samples = 2 * int(num_samples / 2)
+print("onset_envelope.shape = " + str(onset_envelope.shape))
 
-V = 330
-A = -6
-B = 6
-C = 1
-X = np.arange(A, B, (B - A) / num_samples)
-vels = 60 * X / ((C**2 + X**2)**0.5)
-f = (V - vels) / V
+N = len(aSrc_ch1)
+T = N / float(sr)
+t = np.linspace(0, T, len(onset_envelope))
 
-# plt.plot(f)
-# plt.show()
+# Get the frame indices of the peaks:
+onset_frames = librosa.util.peak_pick(onset_envelope, 7, 7, 7, 7, 0.5, 5)
 
-doppler = np.zeros(num_samples)
-delta = 1.0 / fs
-index = 0
-indices = (1 / f)
-for i in range(num_samples):
-	value = aSrc_ch1[i]
-	if index * fs >= num_samples - 1:
-		break
-	pos = index * fs
-	mod = pos % 1.0
-	doppler[int(pos)] += value * (1 - mod)
-	doppler[int(pos) + 1] += value * mod
-	index += delta * indices[i]
-N = doppler.size
+print("onset_frames = " + str(onset_frames))
 
-#pdb.set_trace()
+plt.figure(figsize=(14, 5))
+plt.plot(t, onset_envelope)
+plt.grid(False)
+plt.vlines(t[onset_frames], 0, onset_envelope.max(), color='r', alpha=0.7)
+plt.xlabel('Time (sec)')
+plt.xlim(0, T)
+plt.ylim(0)
 
-# apply amplitude fade in and fade out (it's linear, TODO: inverse square)
-doppler = doppler * np.concatenate((np.arange(N/2), np.arange(N/2, 0, -1))) / (N/2)
+# // *---------------------------------------------------------------------* //
 
-# normalize signal scale to -1, 1
-doppler = -1 + (2 * (doppler - np.min(doppler)) / (np.max(doppler) - np.min(doppler)))
+plt.show()
 
-dopplerWavRes1Out = audioOutDir + 'dopplerWavRes1.wav'
-write_wav(dopplerWavRes1Out, doppler, fs)
-
-unmoddedWavOut = audioOutDir + 'unmoddedWav.wav'
-write_wav(unmoddedWavOut, aSrc_ch1, fs)
-
-
+print('\n')
+print('// *--------------------------------------------------------------* //')
+print('// *---::done::---*')
+print('// *--------------------------------------------------------------* //')
