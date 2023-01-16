@@ -38,8 +38,8 @@ import matplotlib.pyplot as plt
 
 currentDir = os.getcwd()
 rootDir = os.path.dirname(currentDir)
-audioSrcDir = rootDir + "/pyAudio/wavsrc/"
-audioOutDir = rootDir + "/pyAudio/wavout/"
+audioSrcDir = rootDir + "/data/src/wav/"
+audioOutDir = rootDir + "/data/res/wavout/"
 
 print("rootDir: " + rootDir)
 print("currentDir: " + currentDir)
@@ -47,11 +47,10 @@ print("currentDir: " + currentDir)
 sys.path.insert(0, rootDir+'/xodma')
 
 from xodmaAudioTools import load_wav, write_wav, valid_audio, resample
-# from xodmaAudioTools import samples_to_time, time_to_samples, fix_length
-# from xodmaSpectralTools import amplitude_to_db, stft, istft, peak_pick
-# from xodmaSpectralTools import magphase
+from xodmaSpectralTools import peak_pick
 # from xodmaSpectralUtil import frames_to_time
 # from xodmaSpectralPlot import specshow
+
 
 sys.path.insert(1, rootDir+'/xodUtil')
 import xodPlotUtil as xodplt
@@ -68,8 +67,7 @@ plt.close('all')
 # // *--User Settings - Primary parameters--*
 # // *---------------------------------------------------------------------* //
 
-wavSrcA = 'slothForest_btx01.wav'
-# wavSrcB = 'scoolreaktor_beatx03.wav'
+wavSrcA = 'The_Amen_Break_48K.wav'
 # wavSrcB = 'gorgulans_beatx01.wav'
 
 # length of input signal:
@@ -124,29 +122,70 @@ if 1:
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
 
-
 # Compute an onset envelope:
 hop_length = 256
 onset_envelope = librosa.onset.onset_strength(aSrc_ch1, sr=sr, hop_length=hop_length)
-
 print("onset_envelope.shape = " + str(onset_envelope.shape))
+
+# // *---------------------------------------------------------------------* //
+# // *----- Librosa Peak Pick -----*
+
+# Get the frame indices of the peaks:
+peaks_librosa = librosa.util.peak_pick(onset_envelope, 7, 7, 7, 7, 0.5, 5)
 
 N = len(aSrc_ch1)
 T = N / float(sr)
 t = np.linspace(0, T, len(onset_envelope))
 
-# Get the frame indices of the peaks:
-onset_frames = librosa.util.peak_pick(onset_envelope, 7, 7, 7, 7, 0.5, 5)
-
-print("onset_frames = " + str(onset_frames))
+print("peaks_librosa = " + str(peaks_librosa))
 
 plt.figure(figsize=(14, 5))
 plt.plot(t, onset_envelope)
 plt.grid(False)
-plt.vlines(t[onset_frames], 0, onset_envelope.max(), color='r', alpha=0.7)
+plt.vlines(t[peaks_librosa], 0, onset_envelope.max(), color='r', alpha=0.7)
 plt.xlabel('Time (sec)')
 plt.xlim(0, T)
 plt.ylim(0)
+
+# // *---------------------------------------------------------------------* //
+# // *----- XODMA onset detection -----*
+
+hop = hop_length
+
+# Matches: peaks = peak_pick(onset_env, 7, 7, 7, 7, 0.5, 7)
+peakThresh = 0.7
+peakWait = 0.05
+
+# peakThresh = 0.07
+# peakWait = 0.33
+
+
+def xodmaPeaks(wavIn, sr, hop, peakThresh, peakWait, **kwargs):
+
+    kwargs.setdefault('pre_max', 0.03 * sr // hop)  # 30ms
+    kwargs.setdefault('post_max', 0.00 * sr // hop + 1)  # 0ms
+    kwargs.setdefault('pre_avg', 0.10 * sr // hop)  # 100ms
+    kwargs.setdefault('post_avg', 0.10 * sr // hop + 1)  # 100ms
+    kwargs.setdefault('wait', peakWait * sr // hop)  # 30ms
+    kwargs.setdefault('delta', peakThresh)
+
+    peaks = peak_pick(wavIn, **kwargs)
+
+    return peaks
+
+
+peaks_xodma = xodmaPeaks(onset_envelope, sr, hop, peakThresh, peakWait)
+
+print("peaks_xodma = " + str(peaks_xodma))
+
+plt.figure(figsize=(14, 5))
+plt.plot(t, onset_envelope)
+plt.grid(False)
+plt.vlines(t[peaks_xodma], 0, onset_envelope.max(), color='r', alpha=0.7)
+plt.xlabel('Time (sec)')
+plt.xlim(0, T)
+plt.ylim(0)
+
 
 # // *---------------------------------------------------------------------* //
 

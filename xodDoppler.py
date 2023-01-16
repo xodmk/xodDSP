@@ -36,8 +36,8 @@ import xodWavGen as wavGen
 
 currentDir = os.getcwd()
 rootDir = os.path.dirname(currentDir)
-audioSrcDir = rootDir + "/pyAudio/wavsrc/"
-audioOutDir = rootDir + "/pyAudio/wavout/"
+audioSrcDir = rootDir + "/data/src/wav/"
+audioOutDir = rootDir + "/data/res/wavout/"
 
 print("rootDir: " + rootDir)
 print("currentDir: " + currentDir)
@@ -66,8 +66,7 @@ plt.close('all')
 # // *--User Settings - Primary parameters--*
 # // *---------------------------------------------------------------------* //
 
-wavSrcA = 'slothForest_btx01.wav'
-# wavSrcB = 'scoolreaktor_beatx03.wav'
+wavSrcA = 'The_Amen_Break_48K.wav'
 # wavSrcB = 'gorgulans_beatx01.wav'
 
 # length of input signal:
@@ -152,15 +151,12 @@ if 1:
 
 	xodplt.xodPlot1D(fnum, aSrc_ch1, xaxis, pltTitle, pltXlabel, pltYlabel)
 
-
 # pdb.set_trace()
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
 
 fs = afs
-# fs = 48000
-# ch1 = (np.sin(2*np.pi*np.arange(80000)*2000/fs)).astype(np.float32)
 
 num_samples = aSrc_ch1.size
 
