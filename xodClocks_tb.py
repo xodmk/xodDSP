@@ -24,8 +24,6 @@ import matplotlib.pyplot as plt
 
 
 # // *---------------------------------------------------------------------* //
-# // *---------------------------------------------------------------------* //
-
 # assumes python projects are located in xodPython
 
 currentDir = os.getcwd()
@@ -35,16 +33,14 @@ audioOutDir = currentDir + "audio/wavout/"
 print("currentDir: " + currentDir)
 print("rootDir: " + rootDir)
 
-
 sys.path.insert(0, rootDir+'/xodUtil')
 import xodPlotUtil as xodplt
 
-sys.path.insert(2, rootDir+'DSP')
+sys.path.insert(2, rootDir+'/xodDSP')
 import xodClocks as clks
 
-
 # temp python debugger - use >>>pdb.set_trace() to set break
-#import pdb
+# import pdb
 
 
 # // *---------------------------------------------------------------------* //
@@ -53,20 +49,12 @@ print('// //////////////////////////////////////////////////////////////// //')
 print('// *--------------------------------------------------------------* //')
 print('// *---:: XODMK Clock Generator test ::---*')
 print('// *--------------------------------------------------------------* //')
-print('// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ //')
-
+print('// //////////////////////////////////////////////////////////////// //')
 
 # // *---------------------------------------------------------------------* //
-
-# /////////////////////////////////////////////////////////////////////////////
-# #############################################################################
 # begin : function definitions
-# #############################################################################
-# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+# // *---------------------------------------------------------------------* //
 
-# // *---------------------------------------------------------------------* //
-# // *--Math Functions--*
-# // *---------------------------------------------------------------------* //
 
 def cyclicZn(n):
     """ calculates the Zn roots of unity """
@@ -77,10 +65,10 @@ def cyclicZn(n):
 
     return cZn
 
-
 # // *---------------------------------------------------------------------* //
 # // *--Primary parameters--*
 # // *---------------------------------------------------------------------* //
+
 
 # audio sample rate:
 fs = 48000.0
@@ -104,8 +92,7 @@ secondsPerBar = timeSig * spb
 xLength = secondsPerBar
 
 # plot clock signals
-xPlots = 1;
-
+xPlots = 1
 
 print('\n')
 print('// *--------------------------------------------------------------* //')
@@ -115,7 +102,6 @@ print('// *--------------------------------------------------------------* //')
 # // *---------------------------------------------------------------------* //
 
 tbClocks = clks.XodClocks(xLength, fs, bpm, framesPerSec)
-
 
 tbxLength = tbClocks.xLength
 tbFs = tbClocks.fs
@@ -138,7 +124,6 @@ tbtotalSamples = tbClocks.totalSamples
 # set totalBeats - total beats in x
 tbtotalBeats = tbClocks.totalBeats
 
-
 # *---Video secondary Parameters---*
 
 # set samplesPerFrame - Num audio samples per video frame
@@ -149,16 +134,9 @@ tbframesPerBeat = tbClocks.framesPerBeat
 # set totalFrames - Total video frames in x
 TBtotalFrames = tbClocks.totalFrames
 
-
 tbclkDownBeats = tbClocks.clkDownBeats()
 
 tbclkDownBeatsGnr = np.array([y for y in tbClocks.clkDownBeatsGnr()])
-
-#alt
-#tbclkDownBeatsGnr = np.zeros([tbxLength, 1])
-#for y in range(tbxLength):
-#    tbclkDownBeatsGnr[y] = tbClocks.clkDownBeatsGnr()
-
 
 tbclkDownFrames = tbClocks.clkDownFrames()
 
@@ -176,12 +154,10 @@ tbclkXbeat = tbClocks.clkXBeat(Xnote)
 
 tbclkXbeatGnr = np.array([y for y in tbClocks.clkXBeatGnr(Xnote)])
 
-
 pulseWidth = int(tbClocks.samplesPerBeat/3)
 tbclkXpulse = tbClocks.clkXPulse(Xnote, pulseWidth)
 
 tbclkXpulseGnr = np.array([y for y in tbClocks.clkXPulseGnr(Xnote, pulseWidth)])
-
 
 print('\nCreated odmkClocks object "tbClock" with the following parameters:')
 print('\nAn odmkClocks object has been instanced with:')
@@ -237,8 +213,7 @@ if xPlots == 1:
     
     xodplt.xodPlot1D(fnum, tbclkXbeatGnr[0:tLen], xaxis,
                      pltTitle, pltXlabel, pltYlabel, 9, 3)
-    
-   
+
     # define a sub-range for wave plot visibility
     tLen = int(tbtotalSamples)
     
@@ -252,8 +227,7 @@ if xPlots == 1:
     
     xodplt.xodPlot1D(fnum, .97*tbclkXpulse[0:tLen], xaxis,
                      pltTitle, pltXlabel, pltYlabel, 9, 3)
-    
-    
+
     # define a sub-range for wave plot visibility
     tLen = int(tbtotalSamples)
     

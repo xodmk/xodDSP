@@ -36,8 +36,8 @@ import xodWavGen as wavGen
 
 currentDir = os.getcwd()
 rootDir = os.path.dirname(currentDir)
-audioSrcDir = rootDir + "/data/src/wav/"
-audioOutDir = rootDir + "/data/res/wavout/"
+audioSrcDir = rootDir + "/pyAudio/wavsrc/"
+audioOutDir = rootDir + "/pyAudio/wavout/"
 
 print("rootDir: " + rootDir)
 print("currentDir: " + currentDir)
@@ -66,7 +66,8 @@ plt.close('all')
 # // *--User Settings - Primary parameters--*
 # // *---------------------------------------------------------------------* //
 
-wavSrcA = 'The_Amen_Break_48K.wav'
+wavSrcA = 'slothForest_btx01.wav'
+# wavSrcB = 'scoolreaktor_beatx03.wav'
 # wavSrcB = 'gorgulans_beatx01.wav'
 
 # length of input signal:
@@ -151,12 +152,15 @@ if 1:
 
 	xodplt.xodPlot1D(fnum, aSrc_ch1, xaxis, pltTitle, pltXlabel, pltYlabel)
 
+
 # pdb.set_trace()
 
 # // *---------------------------------------------------------------------* //
 # // *---------------------------------------------------------------------* //
 
 fs = afs
+# fs = 48000
+# ch1 = (np.sin(2*np.pi*np.arange(80000)*2000/fs)).astype(np.float32)
 
 num_samples = aSrc_ch1.size
 
@@ -189,7 +193,7 @@ for i in range(num_samples):
 	index += delta * indices[i]
 N = doppler.size
 
-#pdb.set_trace()
+# pdb.set_trace()
 
 # apply amplitude fade in and fade out (it's linear, TODO: inverse square)
 doppler = doppler * np.concatenate((np.arange(N/2), np.arange(N/2, 0, -1))) / (N/2)
@@ -202,5 +206,3 @@ write_wav(dopplerWavRes1Out, doppler, fs)
 
 unmoddedWavOut = audioOutDir + 'unmoddedWav.wav'
 write_wav(unmoddedWavOut, aSrc_ch1, fs)
-
-

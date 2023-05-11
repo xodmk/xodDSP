@@ -4,7 +4,7 @@
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 # *****************************************************************************
 #
-# __::((oscLfoWavCheck.py))::__
+# __::(( oscLfoWavCheck.py ))::__
 #
 # Python test scriopt for verification & plotting Osc/Lfo/Wavforms
 # required lib:
@@ -56,10 +56,11 @@ import pdb
 # %matplotlib qt
 
 
+# /////////////////////////////////////////////////////////////////////////////
+# // *---------------------------------------------------------------------* //
+# // *--- Functions ---*
+# // *---------------------------------------------------------------------* //
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-# // *---------------------------------------------------------------------* //
-# // *-- Functions--*
-# // *---------------------------------------------------------------------* //
 
 def cyclicZn(n):
     """ calculates the Zn roots of unity """
@@ -93,15 +94,15 @@ def arrayFromFile(fname):
 
     return arrayNm
 
+
 # /////////////////////////////////////////////////////////////////////////////
-# #############################################################################
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # begin Test:
-# #############################################################################
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-
 # // *---------------------------------------------------------------------* //
-# // *---::Set Parameters for test output::---*')
+# // *---:: Set Parameters for test output ::---*')
 
 # length of x in seconds:
 xLength = 5  # 0.0024
@@ -129,19 +130,18 @@ createWavFile = 0
 testFreq1 = 777.0
 testPhase1 = 0
 
-# FIXIT FIXIT - redundant (xodWavGen_tb) replace with verifications
+fnum = 0
+
+# /////////////////////////////////////////////////////////////////////////////
+# xodWavGen waveform verification Select / CTRL
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
 # select generated waveforms
-importWavSource = 0
 genMonoSin = 0
 genMonoTri = 0
 genLFO = 0
 genSinArray = 0
 genCompositeSinArray = 0
-
-
-# select input waveform verification
-checkOrthogSinArray = 1
-
 
 genWavetableOsc = 0
 if genWavetableOsc == 1:
@@ -154,30 +154,46 @@ if genWavetableOsc == 1:
 genPWMOsc = 0
 
 
-# // *---------------------------------------------------------------------* //
-# // *---::Instantiate clock & signal Generator objects::---*
+# /////////////////////////////////////////////////////////////////////////////
+# Input waveform verification Select / CTRL
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+# * Read waveform data from file (.txt / .dat file sample array)
+# * plot time & freq domain
+
+# Test Basic: Read single channel waveform data - plot time & freq domain
+importWavSource = 0
+
+# Example: HLS 4 Channel Orthogonal sin wav output vs. Python reference
+checkOrthogSinArray4CH = 0
+
+# Test X0: Single channel LFO
+checkLFO1CH = 1
+
+# Test-1: Test-1: 4 Channel LFO Array
+checkLFO4CH = 1
+
+# Test-2: 4 Channel Orthogonal Freq LFO Array
+checkOrthogFreqLFO4CH = 0
+
+
+# /////////////////////////////////////////////////////////////////////////////
+# Instantiate clock & signal Generator objects
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 tbClocks = clks.XodClocks(xLength, sr, bpm, framesPerSec)
 
-numSamples = tbClocks.totalSamples
+numSamples = tbClocks.totalSamples              # used for self-generating wavform tests
 tbclkDownBeats = tbClocks.clkDownBeats()
 
 wavGenOutDir = audioOutDir + 'wavGenOutDir/'
 
 tbWavGen = wavGen.xodWavGen(sr, xLength, wavGenOutDir)
 
-# // *---------------------------------------------------------------------* //
-# // *---------------------------------------------------------------------* //
-# Load Source Waveform from file and Plot
-if importWavSource == 1:
 
-    srcWav1 = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_lfoSin_out.txt'
-
-    arrayWav1 = arrayFromFile(srcWav1)
-    plotWavSource = 1
-
-else:
-    plotWavSource = 0
+# /////////////////////////////////////////////////////////////////////////////
+# xodWavGen waveform verification Signal Processing
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 # // *---------------------------------------------------------------------* //
 # // *---:: Generate Model waveforms ::---*
@@ -205,12 +221,12 @@ if genMonoSin == 1:
     monoSinArrayOut = tbWavGen.monosinArray(monoSinFreq)
     monoSinArrayOutxl = tbWavGen.monosinArray(monoSinFreq, sr, xl)
 
-
 else:
     plotMonoSin = 0
 
 # // *---------------------------------------------------------------------* //
-# generate simple mono tri wave
+# // *---:: generate simple mono tri wave ::---*
+
 if genMonoTri == 1:
 
     print('\n::Mono Tri waves::')
@@ -231,12 +247,12 @@ if genMonoTri == 1:
     monoTriArrayOut = tbWavGen.monotriArray(monoTriFreq, sr, xl)
     monoTriArrayOutxl = tbWavGen.monotriArray(monoTriFreq, sr, xl)
 
-
 else:
     plotMonoTri = 0
 
 # // *---------------------------------------------------------------------* //
-# generate LFO signals
+# // *---:: generate LFO signals ::---*
+
 if genLFO == 1:
 
     # Create new object with lower sample...
@@ -257,12 +273,12 @@ if genLFO == 1:
     LFO_R = np.array([y for y in tbLFOGen.monosin(lfoFreqArray1[1], srLfo, xlLFO)])
     testLFOdual = [LFO_L, LFO_R]
 
-
 else:
     plotLFO = 0
 
 # // *---------------------------------------------------------------------* //
-# generate array of sin waves
+# // *---:: generate array of sin waves ::---*
+
 if genSinArray == 1:
 
     plotSinArray = 1
@@ -293,12 +309,12 @@ if genSinArray == 1:
 
     print('generated array of sin signals "sinArray"')
 
-
 else:
     plotSinArray = 0
 
 # // *---------------------------------------------------------------------* //
-# generate a composite signal of an array of sin waves "sum of sines"
+# // *---:: generate composite signal of array of sin waves "sum of sines" ::---*
+
 if genCompositeSinArray == 1:
 
     plotCompositeSinArray = 1
@@ -324,44 +340,71 @@ if genCompositeSinArray == 1:
     print('Generated composite sine signal: sinOrth5Comp1')
     print('generated a Composite array of sin signals "orthoSinComp1"')
 
-
 else:
     plotCompositeSinArray = 0
 
 
-# // *---------------------------------------------------------------------* //
-
 # /////////////////////////////////////////////////////////////////////////////
-# begin : input waveform verification
+# Input waveform verification signal processing
 # \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 # // *---------------------------------------------------------------------* //
-# generate orthogonal array of sin waves - 4 CHannels
-if checkOrthogSinArray == 1:
+# // *---:: Load Source Waveform from file and Plot ::---*
 
-    plotCheckOrthogSinArray4CH = 1
+if importWavSource == 1:
 
-    numOrthogChannels = 4
+    # Direct from xodHLS data/output results:
+    srcWav1 = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_lfoSin_out.txt'
+
+    # Saved xodHLS data/output results for archive consistency
+    # srcWav1 = '/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsBasicSingleChannel/dds_lfoSin_out.txt'
+
+    arrayWav1 = arrayFromFile(srcWav1)
+    plotWavSource = 1
+
+else:
+    plotWavSource = 0
+
+# // *---------------------------------------------------------------------* //
+# // *---:: Check Orthogonal array of sin waves - 4 CHannels ::---*
+
+if checkOrthogSinArray4CH == 1:
 
     print('\n::Check Orthogonal Multi Sine source 4CH::')
 
+    plotCheckOrthogSinArray4CH = 1
+    numOrthogChannels = 4
+
     srcWav = []
     srcArrayTmp = np.array([])
-    srcWavArray = np.array([])
+    srcOrthogSinArray = np.array([])
 
-    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_0.txt')
-    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_1.txt')
-    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_2.txt')
-    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_3.txt')
+    if 1:
+        # Direct from xodHLS data/output results:
+        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_0.txt')
+        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_1.txt')
+        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_2.txt')
+        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_3.txt')
+    else:
+        # Saved xodHLS data/output results for archive consistency
+        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_0.txt')
+        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_1.txt')
+        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_2.txt')
+        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_3.txt')
 
     for c in range(numOrthogChannels):
         srcArrayTmp = arrayFromFile(srcWav[c])
-        srcWavArray = np.concatenate((srcWavArray, srcArrayTmp))
-    srcWavArray = srcWavArray.reshape(numOrthogChannels, len(srcArrayTmp))
+        if c == 0:
+            srcLength = len(srcArrayTmp)
+            print(f'\nLength of Source Signal (CH0) = {str(srcLength)}')
+        else:
+            assert len(srcArrayTmp) == srcLength, \
+                f'Length of srcWav doesn\'t match testLength, srcWavLength: {len(srcArrayTmp)}'
+        srcOrthogSinArray = np.concatenate((srcOrthogSinArray, srcArrayTmp))
+    srcOrthogSinArray = srcOrthogSinArray.reshape(numOrthogChannels, len(srcArrayTmp))
 
     # for n freqs, use 2n+1 => skip DC and negative freqs!
     # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
-
     czn = cyclicZn(2 * numOrthogChannels + 1)
 
     orthogFreqArray = np.array([])
@@ -376,16 +419,182 @@ if checkOrthogSinArray == 1:
 
     # pdb.set_trace()
 
-    orthogSinArray = np.array([])
+    srcTime = srcLength / sr
+
+    refOrthogSinArray = np.array([])
     for freq in orthogFreqArray:
-        orthogSinArray = np.concatenate((orthogSinArray, tbWavGen.monosinArray(freq)))
-    orthogSinArray = orthogSinArray.reshape((numOrthogChannels, numSamples))
+        refOrthogSinArray = np.concatenate((refOrthogSinArray, tbWavGen.monosinArray(freq, sr, srcTime)))
+    refOrthogSinArray = refOrthogSinArray.reshape((numOrthogChannels, srcLength))
+
+    print('generated 4CH array of orthogonal sin signals "orthogSinArray4CH"')
+
+    # Outputs Arrays:
+    # refOrthogSinArray, srcOrthogSinArray
+
+else:
+    plotCheckOrthogSinArray4CH = 0
+
+
+# // *---------------------------------------------------------------------* //
+# // *---:: CTest X0: Single channel LFO ::---*
+
+if checkLFO1CH == 1:
+
+    print('\n::Check Single channel LFO::')
+
+    plotCheckLFO1CH = 1
+
+    lfoWavData1CH = np.array([])
+    srcLfoArray = np.array([])
+
+    if 1:
+        # Direct from xodHLS data/output results:
+        lfoWav1CH = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_0.txt'
+    else:
+        # Saved xodHLS data/output results for archive consistency
+        lfoWav1CH = '/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_0.txt'
+
+    srcLfoData1CH = arrayFromFile(lfoWav1CH)
+    lfoLength = len(srcLfoData1CH)
+    print(f'\nLength of Source Signal (CH0) = {str(lfoLength)}')
+
+    # ** Assumes frequency array matches with imported frequency array **
+    lfoRefFreq = 560
+    print(f'\nLFO Frequency = {str(lfoRefFreq)}')
+
+    lfoTime = lfoLength / sr
+
+    refLfoData1CH = tbWavGen.monosinArray(lfoRefFreq, sr, lfoTime)
+
+    print('generated 1CH LFO signal "srcLfoData1CH"')
+
+    # Outputs Arrays:
+    # refLfoData1CH, srcLfoData1CH
+
+
+else:
+    plotCheckLFO1CH = 0
+
+
+# // *---------------------------------------------------------------------* //
+# // *---:: Test-1: 4 Channel LFO Array ::---*
+# // *---:: [111.11111111 222.22222222 333.33333333 444.44444444] ::---*
+
+if checkLFO4CH == 1:
+
+    print('\n::4 Channel LFO Array::')
+
+    plotCheckLFO4CH = 1
+    numLfoChannels = 4
+
+    lfoWav = []
+    lfoArrayTmp = np.array([])
+    srcLfoArray = np.array([])
+
+    if 1:
+        # Direct from xodHLS data/output results:
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_0.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_1.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_2.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_3.txt')
+    else:
+        # Saved xodHLS data/output results for archive consistency
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_0.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_1.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_2.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_3.txt')
+
+    for c in range(numLfoChannels):
+        lfoArrayTmp = arrayFromFile(lfoWav[c])
+        if c == 0:
+            lfoLength = len(lfoArrayTmp)
+            print(f'\nLength of Source Signal (CH0) = {str(lfoLength)}')
+        else:
+            assert len(lfoArrayTmp) == lfoLength, \
+                f'Length of lfoWav doesn\'t match testLength, srcWavLength: {len(lfoArrayTmp)}'
+        srcLfoArray = np.concatenate((srcLfoArray, lfoArrayTmp))
+    srcLfoArray = srcLfoArray.reshape(numLfoChannels, len(lfoArrayTmp))
+
+    # ** Assumes frequency array matches with imported frequency array **
+    lfoRefFreqArray = np.array([111.11111111, 222.22222222, 333.33333333, 444.44444444])
+    print('LFO Frequency Array 4CH (Hz):')
+    print(lfoRefFreqArray)
+
+    # pdb.set_trace()
+
+    lfoTime = lfoLength / sr
+
+    refLfoArray = np.array([])
+    for freq in lfoRefFreqArray:
+        refLfoArray = np.concatenate((refLfoArray, tbWavGen.monosinArray(freq, sr, lfoTime)))
+    refLfoArray = refLfoArray.reshape((numLfoChannels, lfoLength))
+
+    print('generated 4CH array of LFO signals "srcLfoArray"')
+
+    # Outputs Arrays:
+    # refLfoArray, srcLfoArray
+
+else:
+    plotCheckLFO4CH = 0
+
+
+# // *---------------------------------------------------------------------* //
+# // *---:: Test-2: 4 Channel Orthogonal Freq LFO Array ::---*
+
+if checkOrthogFreqLFO4CH == 1:
+
+    plotCheckOrthogFreqLFO4CH = 1
+    numLfoChannels = 4
+    print('\n::Check Orthogonal Multi Sine source 4CH::')
+
+    orthogFreqlfoWav = []
+    orthogFreqlfoArrayTmp = np.array([])
+    orthogFreqlfoWavArray = np.array([])
+
+    if 1:
+        # Direct from xodHLS data/output results:
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_0.txt')
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_1.txt')
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_2.txt')
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_3.txt')
+    else:
+        # Saved xodHLS data/output results for archive consistency
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_0.txt')
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_1.txt')
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_2.txt')
+        orthogFreqlfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_3.txt')
+
+    for c in range(numLfoChannels):
+        orthogFreqlfoArrayTmp = arrayFromFile(orthogFreqlfoWav[c])
+        orthogFreqlfoWavArray = np.concatenate((orthogFreqlfoWavArray, orthogFreqlfoArrayTmp))
+    orthogFreqlfoWavArray = orthogFreqlfoWavArray.reshape(numLfoChannels, len(lfoArrayTmp))
+
+    # for n freqs, use 2n+1 => skip DC and negative freqs!
+    # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
+
+    czn = cyclicZn(2 * numLfoChannels + 1)
+
+    orthogFreqlfoRefFreqArray = np.array([])
+    for c in range(1, numLfoChannels + 1):
+        cznph = np.arctan2(czn[c].imag, czn[c].real)
+        cznFreq = (sr/2 * cznph) / (2 * np.pi)  # limit max freq to 12 KHz (HLS step freq ctrl uses +/- 24bits)
+        cznFreqInt = int(cznFreq)
+        orthogFreqlfoRefFreqArray = np.append(orthogFreqlfoRefFreqArray, cznFreqInt)
+
+    print('Orthogonal Frequency Array 4CH (Hz):')
+    print(orthogFreqlfoRefFreqArray)
+
+    # pdb.set_trace()
+
+    orthogFreqlfoRefArray = np.array([])
+    for freq in orthogFreqlfoRefFreqArray:
+        orthogFreqlfoRefArray = np.concatenate((orthogFreqlfoRefArray, tbWavGen.monosinArray(freq)))
+    orthogFreqlfoRefArray = orthogFreqlfoRefArray.reshape((numLfoChannels, numSamples))
 
     print('generated 4CH array of orthogonal sin signals "orthogSinArray4CH"')
 
 else:
-    plotCheckOrthogSinArray = 0
-
+    plotCheckOrthogFreqLFO4CH = 0
 
 # // *---------------------------------------------------------------------* //
 
@@ -402,47 +611,9 @@ print('// *---::Plotting::---*')
 print('// *--------------------------------------------------------------* //')
 
 
-# // *---------------------------------------------------------------------* //
-# // *--- Input Source Waveform Plots---*
-
-if plotWavSource == 1:
-    arrayWav1
-
-    # FFT length
-    N = 4096
-
-    y = arrayWav1[0:N]
-    y_FFT = np.fft.fft(y)
-    # scale and format FFT out for plotting
-    y_FFTscale = 2.0 / N * np.abs(y_FFT[0:int(N / 2)])
-    # y_Mag = np.abs(y_FFT)
-    # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
-
-    # define a sub-range for wave plot visibility
-    # tLen = 500
-
-    # Plot y1 time domain:
-    fnum = 1
-    pltTitle = 'plt1: Input Wave Source (first ' + str(N) + ' samples)'
-    pltXlabel = 'time'
-    pltYlabel = 'Magnitude'
-
-    # define a linear space from 0 to 1/2 Fs for x-axis:
-    xaxis = np.linspace(0, N, N)
-    xodplt.xodPlot1D(fnum, y, xaxis, pltTitle, pltXlabel, pltYlabel)
-
-    # plot y freq domain:
-    fnum = 2
-    pltTitle = 'plt2: FFT Mag Input Wave Source'
-    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
-    pltYlabel = 'Magnitude (scaled by 2/N)'
-
-    # define a linear space from 0 to 1/2 Fs for x-axis:
-    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
-    xodplt.xodPlot1D(fnum, y_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
-
-
-# // *---------------------------------------------------------------------* //
+# /////////////////////////////////////////////////////////////////////////////
+# xodWavGen waveform verification Plotting
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 if plotMonoSin == 1:
     # // *---------------------------------------------------------------------* //
@@ -473,7 +644,7 @@ if plotMonoSin == 1:
     # tLen = 500
 
     # Plot y1 time domain:
-    fnum = 10
+    fnum = fnum + 1
     pltTitle = 'plt1: Mono Sin ' + str(monoSinFreq) + ' Hz, (first ' + str(N) + ' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude'
@@ -483,7 +654,7 @@ if plotMonoSin == 1:
     xodplt.xodPlot1D(fnum, y, xaxis, pltTitle, pltXlabel, pltYlabel)
 
     # plot y freq domain:
-    fnum = 11
+    fnum = fnum + 1
     pltTitle = 'plt2: FFT Mag Mono Sin ' + str(monoSinFreq) + ' Hz'
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -493,7 +664,7 @@ if plotMonoSin == 1:
     xodplt.xodPlot1D(fnum, y_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
 
     # Plot y1 time domain:
-    fnum = 12
+    fnum = fnum + 1
     pltTitle = 'plt3: Mono Sin (generator vs. array) ' + str(monoSinFreq) + ' Hz, (first ' + str(N) + ' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude'
@@ -503,7 +674,7 @@ if plotMonoSin == 1:
     xodplt.xodMultiPlot1D(fnum, y_combined, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='gnuplot')
 
     # plot y freq domain:
-    fnum = 13
+    fnum = fnum + 1
     pltTitle = 'plt4: FFT Mag Mono Sin ' + str(monoSinFreq) + ' Hz'
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -543,7 +714,7 @@ if plotMonoTri == 1:
     # tLen = 500
 
     # Plot y1 time domain:
-    fnum = 20
+    fnum = fnum + 1
     pltTitle = 'plt1: Mono Tri ' + str(monoTriFreq) + ' Hz, (first ' + str(N) + ' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude'
@@ -553,7 +724,7 @@ if plotMonoTri == 1:
     xodplt.xodPlot1D(fnum, yTri, xaxis, pltTitle, pltXlabel, pltYlabel)
 
     # plot y freq domain:
-    fnum = 21
+    fnum = fnum + 1
     pltTitle = 'plt2: FFT Mag Mono Tri ' + str(monoTriFreq) + ' Hz'
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -563,7 +734,7 @@ if plotMonoTri == 1:
     xodplt.xodPlot1D(fnum, yTri_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
 
     # Plot y1 time domain:
-    fnum = 22
+    fnum = fnum + 1
     pltTitle = 'plt3: Mono Tri (generator vs. array) ' + str(monoTriFreq) + ' Hz, (first ' + str(N) + ' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude'
@@ -573,7 +744,7 @@ if plotMonoTri == 1:
     xodplt.xodMultiPlot1D(fnum, yTri_combined, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='gnuplot')
 
     # plot y freq domain:
-    fnum = 23
+    fnum = fnum + 1
     pltTitle = 'plt4: FFT Mag Mono Tri ' + str(monoTriFreq) + ' Hz'
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -601,7 +772,7 @@ if plotLFO == 1:
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, N, N)
 
-    fnum = 30
+    fnum = fnum + 1
     pltTitle = 'SigGen output: LFO_L: N Hz sine LFO waveform (first ' + str(N) + ' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude (scaled)'
@@ -616,7 +787,7 @@ if plotLFO == 1:
     # scale and format FFT out for plotting
     LFO_L_FFTscale = 2.0 / N * np.abs(LFO_L_FFT[0:int(N / 2)])
 
-    fnum = 31
+    fnum = fnum + 1
     pltTitle = 'FFT Mag: LFO_L_FFTscale N Hz sine LFO'
     pltXlabel = 'Frequency: 0 - ' + str(srLfo / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -650,7 +821,7 @@ if plotSinArray == 1:
     yArray = yArray.reshape((numFreqs, N))
     yScaleArray = yScaleArray.reshape((numFreqs, int(N / 2)))
 
-    fnum = 40
+    fnum = fnum + 1
     pltTitle = 'Input Signals: sinArray (first ' + str(tLen) + ' samples)'
     pltXlabel = 'sinArray time-domain wav'
     pltYlabel = 'Magnitude'
@@ -662,7 +833,7 @@ if plotSinArray == 1:
 
     xodplt.xodMultiPlot1D(fnum, sinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
-    fnum = 41
+    fnum = fnum + 1
     pltTitle = 'FFT Mag: yScaleArray multi-osc '
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -672,25 +843,67 @@ if plotSinArray == 1:
 
     xodplt.xodMultiPlot1D(fnum, yScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
-# // *---------------------------------------------------------------------* //
 
+# /////////////////////////////////////////////////////////////////////////////
+# Input waveform verification Plots
+# \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+if plotWavSource == 1:
+    arrayWav1
+
+    # FFT length
+    N = 4096
+
+    y = arrayWav1[0:N]
+    y_FFT = np.fft.fft(y)
+    # scale and format FFT out for plotting
+    y_FFTscale = 2.0 / N * np.abs(y_FFT[0:int(N / 2)])
+    # y_Mag = np.abs(y_FFT)
+    # y_Phase = np.arctan2(y_FFT.imag, y_FFT.real)
+
+    # define a sub-range for wave plot visibility
+    # tLen = 500
+
+    # Plot y1 time domain:
+    fnum = fnum + 1
+    pltTitle = 'plt1: Input Wave Source (first ' + str(N) + ' samples)'
+    pltXlabel = 'time'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, N, N)
+    xodplt.xodPlot1D(fnum, y, xaxis, pltTitle, pltXlabel, pltYlabel)
+
+    # plot y freq domain:
+    fnum = fnum + 1
+    pltTitle = 'plt2: FFT Mag Input Wave Source'
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+    xodplt.xodPlot1D(fnum, y_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
+
+
+# // *---------------------------------------------------------------------* //
 if plotCheckOrthogSinArray4CH == 1:
 
     # // *---------------------------------------------------------------------* //
     # // *---Array of Orthogonal Sines wave plots---*
 
+    # python reference source array: refOrthogSinArray
+    # External input source array: srcOrthogSinArray
+
     # Test FFT length
     N = 4096
 
-    assert len(orthogSinArray[0, :]) >= N
-    assert len(srcWavArray[0, :]) >= N
+    assert len(refOrthogSinArray[0, :]) >= N,\
+        f"Length of ref signal less than FFT length, reflength = {len(refOrthogSinArray[0, :])}"
+    assert len(srcOrthogSinArray[0, :]) >= N,\
+        f"Length of src signal less than FFT length, srclength = {len(srcOrthogSinArray[0, :])}"
 
     tLen = N
-
     numFreqs = numOrthogChannels
-
-    # orthogSinArray - python generated waveforms
-    # srcWavArray - imported waveforms from c++ file i/o
 
     yOrthogArray = np.array([])
     yOrthogScaleArray = np.array([])
@@ -699,30 +912,34 @@ if plotCheckOrthogSinArray4CH == 1:
 
     # for h in range(len(sinArray[0, :])):
     for h in range(numFreqs):
-        yOrthogFFT = np.fft.fft(orthogSinArray[h, 0:N])
+        # python ref
+        yOrthogFFT = np.fft.fft(refOrthogSinArray[h, 0:N])
         yOrthogArray = np.concatenate((yOrthogArray, yOrthogFFT))
         yOrthogScaleArray = np.concatenate((yOrthogScaleArray, 2.0 / N * np.abs(yOrthogFFT[0:int(N / 2)])))
-        ySrcWavFFT = np.fft.fft(srcWavArray[h, 0:N])
+        # imported src
+        ySrcWavFFT = np.fft.fft(srcOrthogSinArray[h, 0:N])
         ySrcWavArray = np.concatenate((ySrcWavArray, ySrcWavFFT))
         ySrcWavScaleArray = np.concatenate((ySrcWavScaleArray, 2.0 / N * np.abs(ySrcWavFFT[0:int(N / 2)])))
+    # python ref freq domain
     yOrthogArray = yOrthogArray.reshape((numFreqs, N))
     yOrthogScaleArray = yOrthogScaleArray.reshape(numFreqs, (int(N / 2)))
+    # imported src freq domain
     ySrcWavArray = ySrcWavArray.reshape((numFreqs, N))
     ySrcWavScaleArray = ySrcWavScaleArray.reshape(numFreqs, (int(N / 2)))
 
     # // *---------------------------------------------------------------------* //
     # *** plot python generated waveforms ***
-    fnum = 50
-    pltTitle = 'Input Signals: orthoSinArray (first ' + str(tLen) + ' samples)'
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: refOrthogSinArray (first ' + str(tLen) + ' samples)'
     pltXlabel = 'orthoSinArray time-domain wav'
     pltYlabel = 'Magnitude'
 
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
 
-    xodplt.xodMultiPlot1D(fnum, orthogSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+    xodplt.xodMultiPlot1D(fnum, refOrthogSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
-    fnum = 51
+    fnum = fnum + 1
     pltTitle = 'FFT Mag: yOrthogScaleArray multi-osc '
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -734,17 +951,17 @@ if plotCheckOrthogSinArray4CH == 1:
 
     # // *---------------------------------------------------------------------* //
     # *** plot imported imported waveforms ***
-    fnum = 52
-    pltTitle = 'Input Signals: srcWavArray (first ' + str(tLen) + ' samples)'
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: srcOrthogSinArray (first ' + str(tLen) + ' samples)'
     pltXlabel = 'srcWavArray time-domain wav'
     pltYlabel = 'Magnitude'
 
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
 
-    xodplt.xodMultiPlot1D(fnum, srcWavArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+    xodplt.xodMultiPlot1D(fnum, srcOrthogSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
-    fnum = 53
+    fnum = fnum + 1
     pltTitle = 'FFT Mag: ySrcWavScaleArray multi-osc '
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -754,8 +971,8 @@ if plotCheckOrthogSinArray4CH == 1:
 
     xodplt.xodMultiPlot1D(fnum, ySrcWavScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
-
 # // *---------------------------------------------------------------------* //
+
 
 if plotCompositeSinArray == 1:
     # // *---------------------------------------------------------------------* //
@@ -771,7 +988,7 @@ if plotCompositeSinArray == 1:
     # define a linear space from 0 to 1/2 Fs for x-axis:
     xaxis = np.linspace(0, tLen, tLen)
 
-    fnum = 60
+    fnum = fnum + 1
     pltTitle = 'SigGen output: sinOrth5Comp1 Composite waveform (first ' + str(tLen) + ' samples)'
     pltXlabel = 'time'
     pltYlabel = 'Magnitude (scaled)'
@@ -785,7 +1002,7 @@ if plotCompositeSinArray == 1:
     sinComp1_FFT = np.fft.fft(ySinComp1)
     sinComp1_FFTscale = 2.0 / N * np.abs(sinComp1_FFT[0:int(N / 2)])
 
-    fnum = 61
+    fnum = fnum + 1
     pltTitle = 'FFT Mag: sinComp1_FFTscale Composite waveform'
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
@@ -798,6 +1015,178 @@ if plotCompositeSinArray == 1:
     xodplt.xodPlot1D(fnum, sinComp1_FFTscale, xfnyq, pltTitle, pltXlabel, pltYlabel)
 
     # // *-----------------------------------------------------------------* //
+
+# // *---------------------------------------------------------------------* //
+if plotCheckLFO1CH == 1:
+
+    # // *---------------------------------------------------------------------* //
+    # // *--- Test X0: Single channel LFO ---*
+
+    # python reference source array: refLfoData1CH
+    # External input source array: srcLfoData1CH
+
+    # Test FFT length
+    N = 4096
+
+    assert len(refLfoData1CH) >= N, \
+        f"Length of ref signal less than FFT length, reflength = {len(refLfoData1CH)}"
+    assert len(srcLfoData1CH) >= N, \
+        f"Length of src signal less than FFT length, srclength = {len(srcLfoData1CH)}"
+
+    tLen = N
+
+    # python ref
+    yRefLfoFFT = np.fft.fft(refLfoData1CH[0:N])
+    yRefLfoFFTScale = 2.0 / N * np.abs(yRefLfoFFT[0:int(N / 2)])
+    # imported src
+    ySrcLfoFFT = np.fft.fft(srcLfoData1CH[0:N])
+    ySrcLfoFFTScale = 2.0 / N * np.abs(ySrcLfoFFT[0:int(N / 2)])
+
+    # // *---------------------------------------------------------------------* //
+    # *** plot python generated waveforms ***
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: refLfoData1CH (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'LFO time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodPlot1D(fnum, refLfoData1CH, xaxis, pltTitle, pltXlabel, pltYlabel)
+
+    fnum = fnum + 1
+    pltTitle = 'FFT Mag: yRefLfoFFTScale '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodPlot1D(fnum, yRefLfoFFTScale, xfnyq, pltTitle, pltXlabel, pltYlabel)
+
+    # // *---------------------------------------------------------------------* //
+    # *** plot imported imported waveforms ***
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: srcLfoData1CH (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'srcLfoData1CH time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodPlot1D(fnum, srcLfoData1CH, xaxis, pltTitle, pltXlabel, pltYlabel)
+
+    fnum = fnum + 1
+    pltTitle = 'FFT Mag: srcLfoData1CH '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodPlot1D(fnum, ySrcLfoFFTScale, xfnyq, pltTitle, pltXlabel, pltYlabel)
+
+
+# // *---------------------------------------------------------------------* //
+if plotCheckLFO4CH == 1:
+
+    # // *---------------------------------------------------------------------* //
+    # // *--- Test-1: 4 Channel LFO Array plots ---*
+
+    # python reference source array: refLfoArray
+    # External input source array: srcLfoArray
+
+    # Test FFT length
+    N = 4096
+
+    assert len(refLfoArray[0, :]) >= N, \
+        f"Length of ref signal less than FFT length, reflength = {len(refLfoArray[0, :])}"
+    assert len(srcLfoArray[0, :]) >= N, \
+        f"Length of src signal less than FFT length, srclength = {len(srcLfoArray[0, :])}"
+
+    tLen = N
+    numFreqs = numLfoChannels
+
+    yRefLfoFFTArray = np.array([])
+    yRefLfoFFTScaleArray = np.array([])
+    ySrcLfoFFTArray = np.array([])
+    ySrcLfoFFTScaleArray = np.array([])
+
+    # for h in range(len(sinArray[0, :])):
+    for h in range(numFreqs):
+        # python ref
+        yRefLfoFFT = np.fft.fft(refLfoArray[h, 0:N])
+        yRefLfoFFTArray = np.concatenate((yRefLfoFFTArray, yRefLfoFFT))
+        yRefLfoFFTScaleArray = np.concatenate((yRefLfoFFTScaleArray, 2.0 / N * np.abs(yRefLfoFFT[0:int(N / 2)])))
+        # imported src
+        ySrcLfoFFT = np.fft.fft(srcLfoArray[h, 0:N])
+        ySrcLfoFFTArray = np.concatenate((ySrcLfoFFTArray, ySrcLfoFFT))
+        ySrcLfoFFTScaleArray = np.concatenate((ySrcLfoFFTScaleArray, 2.0 / N * np.abs(ySrcLfoFFT[0:int(N / 2)])))
+    # python ref freq domain
+    yRefLfoFFTArray = yRefLfoFFTArray.reshape((numFreqs, N))
+    yRefLfoFFTScaleArray = yRefLfoFFTScaleArray.reshape(numFreqs, (int(N / 2)))
+    # imported src freq domain
+    ySrcLfoFFTArray = ySrcLfoFFTArray.reshape((numFreqs, N))
+    ySrcLfoFFTScaleArray = ySrcLfoFFTScaleArray.reshape(numFreqs, (int(N / 2)))
+
+    # // *---------------------------------------------------------------------* //
+    # *** plot python generated waveforms ***
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: refOrthogSinArray (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'orthoSinArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodMultiPlot1D(fnum, refLfoArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    fnum = fnum + 1
+    pltTitle = 'FFT Mag: yOrthogScaleArray multi-osc '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodMultiPlot1D(fnum, yRefLfoFFTScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    # // *---------------------------------------------------------------------* //
+    # *** plot imported imported waveforms ***
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: srcOrthogSinArray (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'srcWavArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodMultiPlot1D(fnum, srcLfoArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    fnum = fnum + 1
+    pltTitle = 'FFT Mag: ySrcWavScaleArray multi-osc '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodMultiPlot1D(fnum, ySrcLfoFFTScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+# // *---------------------------------------------------------------------* //
+
+if plotCheckOrthogFreqLFO4CH == 1:
+    # // *---------------------------------------------------------------------* //
+    # // *---Array of Orthogonal Sines wave plots---*
+    # python reference source array: refLfoArray
+    # External input source array: srcLfoArray
+
+    # Test FFT length
+    N = 4096
+
+    # .....
+
+# // *---------------------------------------------------------------------* //
 
 
 # // *---------------------------------------------------------------------* //

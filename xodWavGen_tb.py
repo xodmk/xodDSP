@@ -116,17 +116,18 @@ testFreq1 = 777.0
 testPhase1 = 0
 
 
-# select generate waveforms
+# User Select: generate waveforms
 genMonoSin = 0
 genMonoTri = 0
 genLFO = 0
 genSinArray = 0
-genOrthoSinArray = 1
+genOrthoSinArray = 0
 genOrthoSinArray4CH = 0
+genBandLimitOrthoArray = 1
 genCompositeSinArray = 0
 
 
-# select input waveform verification
+# wavetable synthesis verification
 genWavetableOsc = 0
 if genWavetableOsc == 1:
     # shape:
@@ -325,7 +326,7 @@ else:
 
     
 # // *---------------------------------------------------------------------* //    
-# generate orthogonal array of sin waves
+# generate orthogonal array of sin waves (Even spacing in full spectrum)
 if genOrthoSinArray == 1:
     
     plotOrthoSinArray = 1    
@@ -358,12 +359,12 @@ if genOrthoSinArray == 1:
     # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
 
     numOrthoFreq = 7
-    czn = cyclicZn(2*numOrthoFreq + 1)
+    czn = cyclicZn(2 * numOrthoFreq + 1)
 
     orthoFreqArray = np.array([])
-    for c in range(1, numOrthoFreq+1):
+    for c in range(1, numOrthoFreq + 1):
         cznph = np.arctan2(czn[c].imag, czn[c].real)
-        cznFreq = (sr*cznph)/(2*np.pi)
+        cznFreq = (sr * cznph) / (2 * np.pi)
         orthoFreqArray = np.append(orthoFreqArray, cznFreq)
 
     print('Orthogonal Frequency Array (Hz):')
@@ -419,6 +420,64 @@ else:
 
 
 # // *---------------------------------------------------------------------* //
+# generate orthogonal array of sin waves (bandwidth limited)
+if genBandLimitOrthoArray == 1:
+
+    plotBandLimitOrthoArray = 1
+
+    #    numOrtFreqs = 7
+    #    nCzn = cyclicZn(numOrtFreqs)
+    #
+    #
+    #    nOrthogonalArray = np.array([])
+    #    for c in range(numOrtFreqs):
+    #        nCznPh = np.arctan2(nCzn[c].imag, nCzn[c].real)
+    #        nOrthogonalArray = np.append(nOrthogonalArray, (fs*nCznPh)/(2*np.pi))
+
+    # Example orthogonal array:
+    # >>> nCzn =7
+    # array([[ 1.00000000+0.j        ],
+    #       [ 0.62348980+0.78183148j],
+    #       [-0.22252093+0.97492791j],
+    #       [-0.90096887+0.43388374j],
+    #       [-0.90096887-0.43388374j],
+    #       [-0.22252093-0.97492791j],
+    #       [ 0.62348980-0.78183148j]])
+
+    # generate a set of orthogonal frequencies
+
+    print('\n::Orthogonal Multi Sine source::')
+
+    # for n freqs, use 2n+1 => skip DC and negative freqs!
+    # ex. for cyclicZn(15), we want to use czn[1, 2, 3, ... 7]
+
+    bandLimit = 500     # limit signals to below 500 Hz
+    numOrthoFreq = 4
+    czn = cyclicZn(2 * numOrthoFreq + 1)
+
+    bandLimitOrthoFreqArray = np.array([])
+    for c in range(1, numOrthoFreq + 1):
+        cznph = np.arctan2(czn[c].imag, czn[c].real)
+        cznFreq = (2 * bandLimit * cznph) / (2 * np.pi)
+        bandLimitOrthoFreqArray = np.append(bandLimitOrthoFreqArray, cznFreq)
+
+    print('Band Limited Orthogonal Frequency Array (Hz):')
+    print(bandLimitOrthoFreqArray)
+
+    # pdb.set_trace()
+
+    bandLimitOrthoSinArray = np.array([])
+    for freq in bandLimitOrthoFreqArray:
+        bandLimitOrthoSinArray = np.concatenate((bandLimitOrthoSinArray, tbWavGen.monosinArray(freq)))
+    bandLimitOrthoSinArray = bandLimitOrthoSinArray.reshape((numOrthoFreq, numSamples))
+
+    print('generated array of Band Limited orthogonal sin signals "orthoSinArray"')
+
+else:
+    plotBandLimitOrthoArray = 0
+
+
+# // *---------------------------------------------------------------------* //
 # generate a composite signal of an array of sin waves "sum of sines"
 if genCompositeSinArray == 1:
     
@@ -427,7 +486,6 @@ if genCompositeSinArray == 1:
     print('\n::Composite Multi Sine source::')
 
     # user:
-
     odmkTestFreqArray2_1 = [444.0, 1776.0]
     odmkTestFreqArray2_2 = [2500.0, 5000.0]    
     
@@ -860,6 +918,50 @@ if plotOrthoSinArray4CH == 1:
     xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
 
     xodplt.xodMultiPlot1D(fnum, yOrthoScaleArray4CH, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+# // *---------------------------------------------------------------------* //
+
+if plotBandLimitOrthoArray == 1:
+
+    # // *---------------------------------------------------------------------* //
+    # // *---Array of Orthogonal Sines wave plots---*
+
+    # Test FFT length
+    N = 4096
+
+    tLen = N
+
+    numFreqs = numOrthoFreq
+
+    yOrthoArray = np.array([])
+    yOrthoScaleArray = np.array([])
+    # for h in range(len(sinArray[0, :])):
+    for h in range(numFreqs):
+        yOrthoFFT = np.fft.fft(bandLimitOrthoSinArray[h, 0:N])
+        yOrthoArray = np.concatenate((yOrthoArray, yOrthoFFT))
+        yOrthoScaleArray = np.concatenate((yOrthoScaleArray, 2.0 / N * np.abs(yOrthoFFT[0:int(N / 2)])))
+    yOrthoArray = yOrthoArray.reshape((numFreqs, N))
+    yOrthoScaleArray = yOrthoScaleArray.reshape(numFreqs, (int(N / 2)))
+
+    fnum = 32
+    pltTitle = 'Input Signals: bandLimitOrthoSinArray (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'bandLimitOrthoSinArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodMultiPlot1D(fnum, bandLimitOrthoSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    fnum = 33
+    pltTitle = 'FFT Mag: yOrthoScaleArray multi-osc band-limited'
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodMultiPlot1D(fnum, yOrthoScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
 # // *---------------------------------------------------------------------* //
 
