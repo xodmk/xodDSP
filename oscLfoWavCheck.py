@@ -165,13 +165,14 @@ genPWMOsc = 0
 importWavSource = 0
 
 # Example: HLS 4 Channel Orthogonal sin wav output vs. Python reference
-checkOrthogSinArray4CH = 0
+checkOrthogSinArray4CH = 1
+checkDDSXNSinArray4CH = 1
 
 # Test X0: Single channel LFO
-checkLFO1CH = 1
+checkLFO1CH = 0
 
 # Test-1: Test-1: 4 Channel LFO Array
-checkLFO4CH = 1
+checkLFO4CH = 0
 
 # Test-2: 4 Channel Orthogonal Freq LFO Array
 checkOrthogFreqLFO4CH = 0
@@ -379,18 +380,12 @@ if checkOrthogSinArray4CH == 1:
     srcArrayTmp = np.array([])
     srcOrthogSinArray = np.array([])
 
-    if 1:
-        # Direct from xodHLS data/output results:
-        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_0.txt')
-        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_1.txt')
-        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_2.txt')
-        srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/dds_sin_out_T1_3.txt')
-    else:
-        # Saved xodHLS data/output results for archive consistency
-        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_0.txt')
-        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_1.txt')
-        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_2.txt')
-        srcWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsOrthogSinArray4CH_res/dds_sin_out_T1_3.txt')
+    # frequency array = {2666, 5333, 7999, 10666};
+    # Direct from xodHLS data/output results:
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T1_0.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T1_1.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T1_2.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T1_3.txt')
 
     for c in range(numOrthogChannels):
         srcArrayTmp = arrayFromFile(srcWav[c])
@@ -436,6 +431,61 @@ else:
 
 
 # // *---------------------------------------------------------------------* //
+# // *---:: Check Orthogonal array of sin waves - 4 CHannels ::---*
+
+if checkDDSXNSinArray4CH == 1:
+
+    print('\n::Check Orthogonal Multi Sine source 4CH::')
+
+    plotCheckDDSXNSinArray4CH = 1
+    numChannels = 4
+
+    srcWav = []
+    srcArrayTmp = np.array([])
+    srcDDSXNSinArray = np.array([])
+
+    # frequency array = {10000, 10666, 10666, 11332};
+    # Direct from xodHLS data/output results:
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T2_0.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T2_1.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T2_2.txt')
+    srcWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodDDSXN_res/dds_sin_out_T2_3.txt')
+
+    for c in range(numChannels):
+        srcArrayTmp = arrayFromFile(srcWav[c])
+        if c == 0:
+            srcLength = len(srcArrayTmp)
+            print(f'\nLength of Source Signal (CH0) = {str(srcLength)}')
+        else:
+            assert len(srcArrayTmp) == srcLength, \
+                f'Length of srcWav doesn\'t match testLength, srcWavLength: {len(srcArrayTmp)}'
+        srcDDSXNSinArray = np.concatenate((srcDDSXNSinArray, srcArrayTmp))
+    srcDDSXNSinArray = srcDDSXNSinArray.reshape(numChannels, len(srcArrayTmp))
+
+    DDSXNFreqArray = np.array([10000, 10666, 10666, 11332])
+
+    print('DDSXN Frequency Array 4CH (Hz):')
+    print(DDSXNFreqArray)
+
+    # pdb.set_trace()
+
+    srcTime = srcLength / sr
+
+    refDDSXNSinArray = np.array([])
+    for freq in DDSXNFreqArray:
+        refDDSXNSinArray = np.concatenate((refDDSXNSinArray, tbWavGen.monosinArray(freq, sr, srcTime)))
+    refDDSXNSinArray = refDDSXNSinArray.reshape((numChannels, srcLength))
+
+    print('generated 4CH array of DDSXN sin signals "DDSXNSinArray4CH"')
+
+    # Outputs Arrays:
+    # refDDSXNSinArray, srcDDSXNSinArray
+
+else:
+    plotCheckDDSXNSinArray4CH = 0
+
+
+# // *---------------------------------------------------------------------* //
 # // *---:: CTest X0: Single channel LFO ::---*
 
 if checkLFO1CH == 1:
@@ -449,7 +499,9 @@ if checkLFO1CH == 1:
 
     if 1:
         # Direct from xodHLS data/output results:
-        lfoWav1CH = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_0.txt'
+        lfoWav1CH = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodLFOXN_res/lfo_out_T0.txt'
+        # lfoWav1CH = '/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodLFOXN_res/lfo_out_T1_0.txt'
+
     else:
         # Saved xodHLS data/output results for archive consistency
         lfoWav1CH = '/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_0.txt'
@@ -970,6 +1022,95 @@ if plotCheckOrthogSinArray4CH == 1:
     xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
 
     xodplt.xodMultiPlot1D(fnum, ySrcWavScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+# // *---------------------------------------------------------------------* //
+
+
+# // *---------------------------------------------------------------------* //
+if plotCheckDDSXNSinArray4CH == 1:
+
+    # // *---------------------------------------------------------------------* //
+    # // *---Array of DDSXN Sines wave plots---*
+
+    # python reference source array: refDDSXNSinArray
+    # External input source array: srcDDSXNSinArray
+
+    # Test FFT length
+    N = 4096
+
+    assert len(refDDSXNSinArray[0, :]) >= N,\
+        f"Length of ref signal less than FFT length, reflength = {len(refDDSXNSinArray[0, :])}"
+    assert len(srcDDSXNSinArray[0, :]) >= N,\
+        f"Length of src signal less than FFT length, srclength = {len(srcDDSXNSinArray[0, :])}"
+
+    tLen = N
+    numFreqs = numChannels
+
+    yRefDDSXNArray = np.array([])
+    yRefDDSXNScaleArray = np.array([])
+    ySrcDDSXNArray = np.array([])
+    ySrcDDSXNScaleArray = np.array([])
+
+    # for h in range(len(sinArray[0, :])):
+    for h in range(numFreqs):
+        # python ref
+        yRefDDSXNFFT = np.fft.fft(refDDSXNSinArray[h, 0:N])
+        yRefDDSXNArray = np.concatenate((yRefDDSXNArray, yRefDDSXNFFT))
+        yRefDDSXNScaleArray = np.concatenate((yRefDDSXNScaleArray, 2.0 / N * np.abs(yRefDDSXNFFT[0:int(N / 2)])))
+        # imported src
+        ySrcDDSXNFFT = np.fft.fft(srcDDSXNSinArray[h, 0:N])
+        ySrcDDSXNArray = np.concatenate((ySrcDDSXNArray, ySrcDDSXNFFT))
+        ySrcDDSXNScaleArray = np.concatenate((ySrcDDSXNScaleArray, 2.0 / N * np.abs(ySrcDDSXNFFT[0:int(N / 2)])))
+    # python ref freq domain
+    yRefDDSXNArray = yRefDDSXNArray.reshape((numFreqs, N))
+    yRefDDSXNScaleArray = yRefDDSXNScaleArray.reshape(numFreqs, (int(N / 2)))
+    # imported src freq domain
+    ySrcDDSXNArray = ySrcDDSXNArray.reshape((numFreqs, N))
+    ySrcDDSXNScaleArray = ySrcDDSXNScaleArray.reshape(numFreqs, (int(N / 2)))
+
+    # // *---------------------------------------------------------------------* //
+    # *** plot python generated waveforms ***
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: refDDSXNSinArray (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'orthoSinArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodMultiPlot1D(fnum, refDDSXNSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    fnum = fnum + 1
+    pltTitle = 'FFT Mag: yRefDDSXNScaleArray multi-osc '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodMultiPlot1D(fnum, yRefDDSXNScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    # // *---------------------------------------------------------------------* //
+    # *** plot imported imported waveforms ***
+    fnum = fnum + 1
+    pltTitle = 'Input Signals: srcDDSXNSinArray (first ' + str(tLen) + ' samples)'
+    pltXlabel = 'srcWavArray time-domain wav'
+    pltYlabel = 'Magnitude'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xaxis = np.linspace(0, tLen, tLen)
+
+    xodplt.xodMultiPlot1D(fnum, srcDDSXNSinArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
+
+    fnum = fnum + 1
+    pltTitle = 'FFT Mag: ySrcDDSXNScaleArray multi-osc '
+    pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
+    pltYlabel = 'Magnitude (scaled by 2/N)'
+
+    # define a linear space from 0 to 1/2 Fs for x-axis:
+    xfnyq = np.linspace(0.0, 1.0 / (2.0 * T), int(N / 2))
+
+    xodplt.xodMultiPlot1D(fnum, ySrcDDSXNScaleArray, xfnyq, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
 # // *---------------------------------------------------------------------* //
 
