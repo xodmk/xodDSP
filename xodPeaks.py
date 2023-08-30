@@ -38,19 +38,20 @@ import matplotlib.pyplot as plt
 
 currentDir = os.getcwd()
 rootDir = os.path.dirname(currentDir)
-audioSrcDir = rootDir + "/data/src/wav/"
-audioOutDir = rootDir + "/data/res/wavout/"
+audioSrcDir = rootDir + "/data/src/wav"
+audioOutDir = rootDir + "/data/res/wavout"
 
 print("rootDir: " + rootDir)
 print("currentDir: " + currentDir)
+print("audioSrcDir: " + audioSrcDir)
+print("audioOutDir: " + audioOutDir)
 
 sys.path.insert(0, rootDir+'/xodma')
 
-from xodmaAudioTools import load_wav, write_wav, valid_audio, resample
-from xodmaSpectralTools import peak_pick
+from xodmaAudioTools import load_wav, write_wav, valid_audio, resample, peak_pick
 from xodmaOnset import detectOnset, onset_strength
-# from xodmaSpectralUtil import frames_to_time
-# from xodmaSpectralPlot import specshow
+from xodmaSpectralUtil import frames_to_time
+from xodmaSpectralPlot import specshow
 
 
 sys.path.insert(1, rootDir+'/xodUtil')
@@ -68,8 +69,7 @@ plt.close('all')
 # // *--User Settings - Primary parameters--*
 # // *---------------------------------------------------------------------* //
 
-wavSrcA = 'The_Amen_Break_48K.wav'
-# wavSrcB = 'gorgulans_beatx01.wav'
+wavSrc = 'The_Amen_Break_48K.wav'
 
 # length of input signal:
 # '0'   => full length of input .wav file
@@ -85,11 +85,9 @@ wavLength = 0
 
 # Load Stereo .wav file
 
-audioSrcA = audioSrcDir + wavSrcA
-# audioSrcB = audioSrcDir+wavSrcB
+audioSrc = audioSrcDir + '/' + wavSrc
 
-[aSrc, aNumChannels, afs, aLength, aSamples] = load_wav(audioSrcA, wavLength, True)
-# [bSrc, bNumChannels, bfs, bLength, bSamples] = load_wav(audioSrcB, wavLength, True)
+[aSrc, aNumChannels, afs, aLength, aSamples] = load_wav(audioSrc, wavLength, True)
 
 if aNumChannels == 2:
     aSrc_ch1 = aSrc[:, 0]
@@ -151,6 +149,8 @@ N = len(aSrc_ch1)
 T = N / float(sr)
 t = np.linspace(0, T, len(onset_envelope))
 
+pdb.set_trace()
+
 print("peaks_librosa = " + str(peaks_librosa))
 plt.figure(figsize=(14, 5))
 plt.plot(t, onset_envelope)
@@ -178,10 +178,7 @@ hop = hop_length
 
 # Matches: peaks = peak_pick(onset_env, 7, 7, 7, 7, 0.5, 5)
 peakThresh = 0.5
-peakWait = 0.002674
-
-# peakThresh = 0.07
-# peakWait = 0.33
+peakWait = 5
 
 
 def xodmaPeaks(wavIn, sr, hop, peakThresh, peakWait, **kwargs):
@@ -190,19 +187,22 @@ def xodmaPeaks(wavIn, sr, hop, peakThresh, peakWait, **kwargs):
     wavIn      : input 1D time domain signal (audio, signal, envelope, etc.)
     sr         : sample rate (normalized for STFT 48KHz audio)
     hop        : STFT Hop length (normalized for hop length 256 (?!))
-    peakThresh : ?
-    peakWait   : ?
+    peakThresh : threshold offset above windowed-mean to qualify a peak
+    peakWait   : number of samples to wait after picking a peak
+
+    ** FIXIT FIXIT - good results, but nonsensical parameterization...
+    Current Example:
     # Matches: peaks = peak_pick(onset_env, 7, 7, 7, 7, 0.5, 5)  # -> default librosa params
     # >> peakThresh = 0.5
-    # >> peakWait = 0.002674
+    # >> peakWait = 5
     """
 
     kwargs.setdefault('pre_max', 0.04 * sr // hop)      # 7.0
     kwargs.setdefault('post_max', 0.04 * sr // hop)     # 7.0
     kwargs.setdefault('pre_avg', 0.04 * sr // hop)      # 7.0
     kwargs.setdefault('post_avg', 0.04 * sr // hop)     # 7.0
-    kwargs.setdefault('wait', peakWait * sr // hop)  # 30ms
     kwargs.setdefault('delta', peakThresh)
+    kwargs.setdefault('wait', peakWait)                 # 30ms
 
     peaks = peak_pick(wavIn, **kwargs)
 
