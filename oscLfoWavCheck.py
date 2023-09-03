@@ -165,14 +165,14 @@ genPWMOsc = 0
 importWavSource = 0
 
 # Example: HLS 4 Channel Orthogonal sin wav output vs. Python reference
-checkOrthogSinArray4CH = 1
-checkDDSXNSinArray4CH = 1
+checkOrthogSinArray4CH = 0
+checkDDSXNSinArray4CH = 0
 
 # Test X0: Single channel LFO
 checkLFO1CH = 0
 
 # Test-1: Test-1: 4 Channel LFO Array
-checkLFO4CH = 0
+checkLFO4CH = 1
 
 # Test-2: 4 Channel Orthogonal Freq LFO Array
 checkOrthogFreqLFO4CH = 0
@@ -545,10 +545,10 @@ if checkLFO4CH == 1:
 
     if 1:
         # Direct from xodHLS data/output results:
-        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_0.txt')
-        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_1.txt')
-        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_2.txt')
-        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/lfo_out_T1_3.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodLFOXN_res/lfo_out_T1_0.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodLFOXN_res/lfo_out_T1_1.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodLFOXN_res/lfo_out_T1_2.txt')
+        lfoWav.append('/home/eschei/xodmk/xodCode/xodHLS/audio/data/output/xodLFOXN_res/lfo_out_T1_3.txt')
     else:
         # Saved xodHLS data/output results for archive consistency
         lfoWav.append('/home/eschei/xodmk/xodCode/xodPython/data/res/xodHLS_resOut_ver/hlsLfoArray4CH_res/lfo_out_T1_0.txt')
@@ -567,7 +567,7 @@ if checkLFO4CH == 1:
         srcLfoArray = np.concatenate((srcLfoArray, lfoArrayTmp))
     srcLfoArray = srcLfoArray.reshape(numLfoChannels, len(lfoArrayTmp))
 
-    # ** Assumes frequency array matches with imported frequency array **
+    # ** Assumes frequency array matches with imported frequency array (** check testbench parameters) **
     lfoRefFreqArray = np.array([111.11111111, 222.22222222, 333.33333333, 444.44444444])
     print('LFO Frequency Array 4CH (Hz):')
     print(lfoRefFreqArray)
@@ -1273,7 +1273,7 @@ if plotCheckLFO4CH == 1:
     # // *---------------------------------------------------------------------* //
     # *** plot python generated waveforms ***
     fnum = fnum + 1
-    pltTitle = 'Input Signals: refOrthogSinArray (first ' + str(tLen) + ' samples)'
+    pltTitle = 'Input Signals: Ref MultiChannel LFO (first ' + str(tLen) + ' samples)'
     pltXlabel = 'orthoSinArray time-domain wav'
     pltYlabel = 'Magnitude'
 
@@ -1283,7 +1283,7 @@ if plotCheckLFO4CH == 1:
     xodplt.xodMultiPlot1D(fnum, refLfoArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
     fnum = fnum + 1
-    pltTitle = 'FFT Mag: yOrthogScaleArray multi-osc '
+    pltTitle = 'FFT Mag: Ref MultiChannel LFO'
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
 
@@ -1295,7 +1295,7 @@ if plotCheckLFO4CH == 1:
     # // *---------------------------------------------------------------------* //
     # *** plot imported imported waveforms ***
     fnum = fnum + 1
-    pltTitle = 'Input Signals: srcOrthogSinArray (first ' + str(tLen) + ' samples)'
+    pltTitle = 'Input Signals: Src MultiChannel LFO (first ' + str(tLen) + ' samples)'
     pltXlabel = 'srcWavArray time-domain wav'
     pltYlabel = 'Magnitude'
 
@@ -1305,7 +1305,7 @@ if plotCheckLFO4CH == 1:
     xodplt.xodMultiPlot1D(fnum, srcLfoArray, xaxis, pltTitle, pltXlabel, pltYlabel, colorMap='hsv')
 
     fnum = fnum + 1
-    pltTitle = 'FFT Mag: ySrcWavScaleArray multi-osc '
+    pltTitle = 'FFT Mag: Src MultiChannel LFO'
     pltXlabel = 'Frequency: 0 - ' + str(sr / 2) + ' Hz'
     pltYlabel = 'Magnitude (scaled by 2/N)'
 
